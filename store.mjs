@@ -1,6 +1,5 @@
 import { LowSync } from "lowdb";
 import { JSONFileSync } from "lowdb/node";
-import "dotenv/config"
 
 export default class Storage {
     constructor() {
@@ -8,9 +7,8 @@ export default class Storage {
         this.db.read()
     }
 
-    async get(userId) {
+    get(userId) {
         this.db.read()
-        console.log(db.data)
         return this.db.data[userId]
     }
 
