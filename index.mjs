@@ -6,7 +6,10 @@ import { renderFile } from "ejs"
 
 // custom utils
 import Storage from "./store.mjs"
-import { getBoards, getBoard } from "./miroutils.mjs"
+import {
+    getBoards, getBoard, getItems, createCard,
+    deleteCard, updateCard, boardIsNull
+} from "./miroutils.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -15,6 +18,7 @@ const miro = new Miro({ storage: new Storage() })
 const app = express()
 
 app.use(cookieParser())
+app.use(express.json())
 app.engine("html", renderFile)
 
 const STATIC = `${resolve()}/static`
@@ -60,11 +64,44 @@ app.get("/boards", async (req, res) => {
 
 app.get("/board", async (req, res) => {
     const { cookies: { session }, query: { board } } = req
+    if (boardIsNull(board, res)) return
+
     return res.json(await getBoard(miro.as(session), board))
 })
 
 app.get("/stt", async (req, res) => {
-    res.sendFile(getStaticFile("stt.html"))
+    return res.sendFile(getStaticFile("stt.html"))
+})
+
+app.get("/allItems", async (req, res) => {
+    const { cookies: { session }, query: { board } } = req
+    if (boardIsNull(board, res)) return
+
+    return res.json(await getItems(miro.as(session), board))
+})
+
+app.post("/card", async (req, res) => {
+    const { cookies: { session }, query: { board }, body } = req
+    if (boardIsNull(board, res)) return
+
+    createCard(miro.as(session), board, body)
+    return res.send("ok")
+})
+
+app.patch("/card", async (req, res) => {
+    const { cookies: { session }, query: { board }, body } = req
+    if (boardIsNull(board, res)) return
+
+    updateCard(miro.as(session), board, body)
+    return res.send("ok")
+})
+
+app.delete("/card", async (req, res) => {
+    const { cookies: { session }, query: { board, cardTitle } } = req
+    if (boardIsNull(board, res)) return
+
+    deleteCard(miro.as(session), board, cardTitle)
+    return res.send("ok")
 })
 
 app.listen(PORT, () => {
