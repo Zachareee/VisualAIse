@@ -40,6 +40,10 @@ app.get("/auth", async (req, res) => {
     return res.redirect("/")
 })
 
+app.get("/stt", async (req, res) => {
+    res.sendFile(getStaticFile("stt.html"))
+})
+
 app.listen(PORT, () => {
     console.log("Listening on port", PORT)
 })
