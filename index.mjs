@@ -6,6 +6,7 @@ import { renderFile } from "ejs"
 
 // custom utils
 import Storage from "./store.mjs"
+import { getBoards } from "./miroutils.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -33,7 +34,7 @@ app.get("/", async (req, res) => {
     if (!await miro.isAuthorized(session))
         return res.render(getStaticFile("unauth.html"), { link: miro.getAuthUrl(user) })
 
-    return res.send(`Welcome, ${session}!\n Your auth_token is ${await miro.getAccessToken(session)}`)
+    return res.sendFile(getStaticFile("boards.html"))
 })
 
 app.get("/auth", async (req, res) => {
@@ -51,6 +52,11 @@ app.use(async (req, res, next) => {
 
     if (await miro.isAuthorized(session)) return next()
     return res.redirect("/")
+})
+
+app.get("/boards", async (req, res) => {
+    const { session } = req.cookies
+    return res.json(await getBoards(miro.as(session)))
 })
 
 app.get("/stt", async (req, res) => {
