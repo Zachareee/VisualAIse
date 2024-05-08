@@ -6,7 +6,7 @@ import { renderFile } from "ejs"
 
 // custom utils
 import Storage from "./store.mjs"
-import { getBoards } from "./miroutils.mjs"
+import { getBoards, getBoard } from "./miroutils.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -23,8 +23,7 @@ app.use(express.static(STATIC))
 
 // Route declarations
 app.get("/", async (req, res) => {
-    const { session } = req.cookies
-    const { user } = req.query
+    const { cookies: { session }, query: { user } } = req
 
     // make sure user is authed or trying to auth
     if (!(session || user))
@@ -57,6 +56,11 @@ app.use(async (req, res, next) => {
 app.get("/boards", async (req, res) => {
     const { session } = req.cookies
     return res.json(await getBoards(miro.as(session)))
+})
+
+app.get("/board", async (req, res) => {
+    const { cookies: { session }, query: { board } } = req
+    return res.json(await getBoard(miro.as(session), board))
 })
 
 app.get("/stt", async (req, res) => {

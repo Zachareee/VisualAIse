@@ -1,5 +1,9 @@
 export async function getBoards(miroapi) {
-    return await unwrapGenerator(miroapi.getAllBoards())
+    return unwrapGenerator(miroapi.getAllBoards())
+}
+
+export async function getBoard(miroapi, boardId) {
+    return miroapi.getBoard(boardId)
 }
 
 async function unwrapGenerator(generator) {

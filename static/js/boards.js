@@ -5,11 +5,13 @@ fetch("/boards").then(res => res.json()).then(addToDiv)
 function addToDiv(res) {
     console.log(res)
     for (obj of res) {
-        const { name, picture: { imageURL } } = obj
+        const { name, picture: { imageURL }, id } = obj
         const div = document.createElement("div")
+        const link = createLink(`/stt?board=${id}`)
 
-        div.appendChild(createBoardTitle(name))
-        div.appendChild(createImage(imageURL))
+        link.appendChild(createBoardTitle(name))
+        link.appendChild(createImage(imageURL))
+        div.appendChild(link)
         list.appendChild(div)
     }
 }
@@ -24,4 +26,10 @@ function createImage(src) {
     const img = new Image(100, 100)
     img.src = src
     return img
+}
+
+function createLink(url) {
+    const link = document.createElement("a")
+    link.href = url
+    return link
 }

@@ -36,6 +36,6 @@ function displayTranscript({ results }) {
     for (const line of results) {
         lines.push(line[0].transcript)
     }
-    console.log(lines)
+
     outputDiv.innerHTML = lines.join("<br>");
 }
