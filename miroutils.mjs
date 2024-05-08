@@ -2,7 +2,7 @@ export async function getBoards(miroapi) {
     return unwrapGenerator(miroapi.getAllBoards())
 }
 
-export async function getBoard(miroapi, boardId) {
+export function getBoard(miroapi, boardId) {
     return miroapi.getBoard(boardId)
 }
 

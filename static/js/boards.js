@@ -1,9 +1,8 @@
 const list = document.getElementById("boardslist")
 
-fetch("/boards").then(res => res.json()).then(addToDiv)
+fetch("/boards").then(res => res.json()).then(addToDiv).catch(console.error)
 
 function addToDiv(res) {
-    console.log(res)
     for (obj of res) {
         const { name, picture: { imageURL }, id } = obj
         const div = document.createElement("div")
