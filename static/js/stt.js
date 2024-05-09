@@ -1,3 +1,14 @@
+const title = document.getElementById("title")
+const thumbnail = document.getElementById("thumbnail")
+
+const params = new URLSearchParams(window.location.search)
+const board = params.get("board")
+
+fetch(`/board?board=${board}`).then(res => res.json()).then(data => {
+    title.innerHTML = data.name
+    thumbnail.src = data.picture.imageURL
+}).catch(console.error)
+
 const startButton = document.getElementById('startButton');
 const endButton = document.getElementById('endButton');
 const outputDiv = document.getElementById('output');
@@ -55,7 +66,7 @@ function sendSentence({ results }) {
 }
 
 function send(content) {
-    fetch("/chat", {
+    fetch(`/chat?board=${board}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

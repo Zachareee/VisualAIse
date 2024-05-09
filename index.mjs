@@ -106,7 +106,10 @@ app.delete("/card", async (req, res) => {
 })
 
 app.post("/chat", async (req, res) => {
-    chat(req.body.content)
+    const { cookies: { session }, body: { content }, query: { board } } = req
+    if (boardIsNull(board, res)) return
+
+    chat(miro.as(session), board, content)
     return res.send("ok")
 })
 

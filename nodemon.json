@@ -1,5 +1,4 @@
 {
     "ignore": ["*.json", "static/*"],
-    "watch": ["."],
-    "ext": "js,mjs,cjs,json,txt"
+    "watch": ["."]
 }

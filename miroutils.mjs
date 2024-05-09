@@ -7,11 +7,11 @@ export function getBoard(miroapi, boardId) {
 }
 
 export async function getItems(miroapi, boardId) {
-    return unwrapGenerator(await getBoard(miroapi, boardId).then(res => res.getAllItems()))
+    return unwrapGenerator(await getBoard(miroapi, boardId).then(res => res.getAllItems())).catch(console.warn)
 }
 
 export function createCard(miroapi, boardId, data) {
-    getBoard(miroapi, boardId).then(board => board.createCardItem(data))
+    getBoard(miroapi, boardId).then(board => board.createCardItem(data)).catch(console.warn)
 }
 
 export function deleteCard(miroapi, boardId, searchKey) {
@@ -28,7 +28,7 @@ export function boardIsNull(board, res) {
 }
 
 async function findCard(board, searchKey) {
-    return (await filterCards(board)).find(({ data: { title } }) => title === searchKey)
+    return (await filterCards(board)).find(({ data: { title } }) => new RegExp(`.*${searchKey}.*`, "i").test(title))
 }
 
 async function filterCards(board) {
