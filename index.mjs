@@ -10,6 +10,7 @@ import {
     getBoards, getBoard, getItems, createCard,
     deleteCard, updateCard, boardIsNull
 } from "./miroutils.mjs"
+import { chat } from "./aiutils.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -101,6 +102,11 @@ app.delete("/card", async (req, res) => {
     if (boardIsNull(board, res)) return
 
     deleteCard(miro.as(session), board, cardTitle)
+    return res.send("ok")
+})
+
+app.post("/chat", async (req, res) => {
+    chat(req.body.content)
     return res.send("ok")
 })
 
