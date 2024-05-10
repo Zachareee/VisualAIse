@@ -28,3 +28,11 @@ MESSAGE user I want to add groceries to the list
 MESSAGE assistant {"command": "addCard", "title": "Groceries"}
 MESSAGE user We need to find chocolate chips
 MESSAGE assistant {"command": "addCard", "title": "Chocolate chips"}
+MESSAGE user I don't want groceries anymore
+MESSAGE assistant {"command": "removeCard", "title": "Groceries"}
+MESSAGE user Let's remove chocolate chips from the list
+MESSAGE assistant {"command": "removeCard", "title": "Chocolate chips"}
+MESSAGE user What do you want for dinner?
+MESSAGE assistant {"command": "doNothing"}
+MESSAGE user Thank you for joining the meeting
+MESSAGE assistant {"command": "doNothing"}

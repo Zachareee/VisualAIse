@@ -4,14 +4,25 @@ import { createCard, deleteCard, updateCard } from './miroutils.mjs'
 await ollama.create({ model: "interpreter", path: "ModelFile" })
 
 export function chat(miroapi, board, content) {
-    ollama.chat({
-        model: "interpreter",
-        messages: [{ role: "user", content }]
-    }).then(res => res.message.content).then(data => decide(miroapi, board, data))
+    chatToJSON(content).then(data => decide(miroapi, board, data))
+}
+
+async function chatToJSON(content) {
+    while (true) {
+        try {
+            return JSON.parse(await ollama.chat({
+                model: "interpreter",
+                messages: [{ role: "user", content }]
+            }).then(res => res.message.content))
+        } catch (err) {
+            console.warn(err)
+        }
+    }
 }
 
 function decide(miroapi, board, data) {
-    const { command, title } = JSON.parse(data)
+    console.log(data)
+    const { command, title } = data
 
     switch (command) {
         case "addCard":
