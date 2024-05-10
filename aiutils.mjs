@@ -1,7 +1,9 @@
 import ollama from 'ollama'
 import { createCard, deleteCard, updateCard } from './miroutils.mjs'
 
-await ollama.create({ model: "interpreter", path: "ModelFile" })
+const model = "interpreter"
+
+await ollama.create({ model, path: "ModelFile" })
 
 export function chat(miroapi, board, content) {
     chatToJSON(content).then(data => decide(miroapi, board, data))
@@ -11,7 +13,7 @@ async function chatToJSON(content) {
     while (true) {
         try {
             return JSON.parse(await ollama.chat({
-                model: "interpreter",
+                model,
                 messages: [{ role: "user", content }]
             }).then(res => res.message.content))
         } catch (err) {
