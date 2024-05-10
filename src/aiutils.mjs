@@ -12,10 +12,14 @@ export function chat(miroapi, board, content) {
 async function chatToJSON(content) {
     while (true) {
         try {
-            return JSON.parse(await ollama.chat({
+            const res = await ollama.chat({
                 model,
                 messages: [{ role: "user", content }]
-            }).then(res => res.message.content))
+            }).then(res => res.message.content)
+
+            // reject array generation
+            if (res.match(/\[|\]/)) throw new Error("Array detected")
+            return JSON.parse(res)
         } catch (err) {
             console.warn(err)
         }
