@@ -15,16 +15,20 @@ export function createCard(miroapi, boardId, data) {
 }
 
 export function deleteCard(miroapi, boardId, searchKey) {
-    getBoard(miroapi, boardId).then(async board => (await findCard(board, searchKey))?.delete()).catch(console.warn)
+    findCardOnBoard(miroapi, boardId, searchKey).then(card => card?.delete()).catch(console.warn)
 }
 
-export function updateCard(miroapi, boardId, data) {
-    getBoard(miroapi, boardId).then(async board => (await findCard(board, searchKey))?.update(data)).catch(console.warn)
+export function updateCard(miroapi, boardId, searchKey, data) {
+    findCardOnBoard(miroapi, boardId, searchKey).then(card => card?.update(data)).catch(console.warn)
 }
 
 export function boardIsNull(board, res) {
     if (!board) res.status(401).send("Query parameter \"board\" is missing")
     return !board
+}
+
+export function findCardOnBoard(miroapi, boardId, searchKey) {
+    return getBoard(miroapi, boardId).then(board => findCard(board, searchKey))
 }
 
 async function findCard(board, searchKey) {
