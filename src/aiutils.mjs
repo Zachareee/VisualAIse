@@ -1,8 +1,11 @@
-import ollama from 'ollama'
+import { Ollama } from 'ollama'
 import { createCard, deleteCard, updateCard } from './miroutils.mjs'
 
 const model = "interpreter"
 
+const { host } = process.env
+
+const ollama = new Ollama({ host })
 await ollama.create({ model, path: "ModelFile" })
 
 export function chat(miroapi, board, content) {
