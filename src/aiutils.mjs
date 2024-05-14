@@ -9,19 +9,19 @@ const ollama = new Ollama({ host })
 await ollama.create({ model, path: "ModelFile" })
 
 export function chat(miroapi, board, content) {
-    chatToJSON(content).then(data => decide(miroapi, board, data))
+    chatToJSON(content).then(data => data.forEach(obj => decide(miroapi, board, obj)))
 }
 
 async function chatToJSON(content) {
     while (true) {
         try {
+            console.log(content)
             const res = await ollama.chat({
                 model,
                 messages: [{ role: "user", content }]
             }).then(res => res.message.content)
 
-            // reject array generation
-            if (res.match(/\[|\]/)) throw new Error("Array detected")
+            console.log(res)
             return JSON.parse(res)
         } catch (err) {
             console.warn(err)

@@ -31,12 +31,12 @@ export function findCardOnBoard(miroapi, boardId, searchKey) {
     return getBoard(miroapi, boardId).then(board => findCard(board, searchKey))
 }
 
-async function findCard(board, searchKey) {
-    return (await filterCards(board)).find(({ data: { title } }) => new RegExp(`.*${searchKey}.*`, "i").test(title))
+export async function filterCards(board) {
+    return (await unwrapGenerator(await board.getAllItems())).filter(({ type }) => type === "card")
 }
 
-async function filterCards(board) {
-    return (await unwrapGenerator(await board.getAllItems())).filter(({ type }) => type === "card")
+async function findCard(board, searchKey) {
+    return (await filterCards(board)).find(({ data: { title } }) => new RegExp(`.*${searchKey}.*`, "i").test(title))
 }
 
 async function unwrapGenerator(generator) {
