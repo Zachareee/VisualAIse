@@ -1,6 +1,6 @@
 import { Ollama } from 'ollama'
 import { deleteCard } from './miroutils.mjs'
-import { sortCards, getCategoryNames, addCard, moveCard } from './mirohighlevel.mjs'
+import { sortCards, getCategoryNames, addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 
 const model = "interpreter"
 
@@ -36,7 +36,7 @@ async function chatToJSON(content, categories) {
 
 export function decide(miroapi, board, data, sortedCards) {
     console.log(data)
-    const { command, title, owner } = data
+    const { command, title, newTitle, owner } = data
 
     switch (command) {
         case "addCard":
@@ -47,6 +47,9 @@ export function decide(miroapi, board, data, sortedCards) {
             break
         case "moveCard":
             moveCard(miroapi, board, { title, owner }, sortedCards)
+            break
+        case "renameCard":
+            renameCard(miroapi, board, {title, newTitle}, sortedCards)
             break
         default:
             console.log("default")
