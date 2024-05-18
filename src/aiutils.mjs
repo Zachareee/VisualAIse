@@ -1,6 +1,6 @@
 import { Ollama } from 'ollama'
-import { createCard, deleteCard, updateCard } from './miroutils.mjs'
-import { sortCards, getCategoryNames, addCard } from './mirohighlevel.mjs'
+import { deleteCard } from './miroutils.mjs'
+import { sortCards, getCategoryNames, addCard, moveCard } from './mirohighlevel.mjs'
 
 const model = "interpreter"
 
@@ -45,7 +45,9 @@ export function decide(miroapi, board, data, sortedCards) {
         case "removeCard":
             deleteCard(miroapi, board, title)
             break
-        case "updateCard":
+        case "moveCard":
+            moveCard(miroapi, board, { title, owner }, sortedCards)
+            break
         default:
             console.log("default")
     }

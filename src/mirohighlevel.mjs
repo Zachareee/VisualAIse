@@ -1,4 +1,4 @@
-import { createCard, filterCards, getBoard, strLike } from "./miroutils.mjs";
+import { createCard, filterCards, getBoard, strLike, updateCard } from "./miroutils.mjs";
 
 const VSPACE = 60 + 20, HSPACE = 320 + 20
 
@@ -16,8 +16,25 @@ export function addCard(miroapi, boardId, { title, owner }, sortedCards) {
     createCard(miroapi, boardId, data)
     sortedCards[x].push(data)
 }
+
 export async function removeCard(miroapi, boardId, owner, options) { }
-export async function moveCard(miroapi, boardId, cardTitle, newowner) { }
+
+export async function moveCard(miroapi, boardId, { title, owner: newowner }, sortedCards) {
+    const { position: { x, y } = {} } = getLastCard(sortedCards, newowner)
+    const data = {
+        data: {
+            title
+        },
+        position: {
+            x: x ?? 0,
+            y: (y ?? 0) + VSPACE
+        }
+    }
+    updateCard(miroapi, boardId, title, data)
+    sortedCards[x].push(data)
+    // need to add chaining functionality
+}
+
 export async function renameCard(miroapi, boardId, cardTitle, newTitle) { }
 
 export function getCategoryNames(sortedCards) {
