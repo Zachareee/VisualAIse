@@ -37,10 +37,9 @@ renameCard format:
 
 moveCard format:
 {
-    "command": movenameCard
+    "command": moveCard
     "title": // title of the card
-    "owner": // old owner of the card
-    "newOwner": // new owner of the card
+    "owner": // new owner of the card
 }
 
 #INPUT format

@@ -35,8 +35,12 @@ export async function filterCards(board) {
     return (await unwrapGenerator(await board.getAllItems())).filter(({ type }) => type === "card")
 }
 
+export function strLike(regex, test) {
+    return new RegExp(`.*${regex}.*`, "i").test(test)
+}
+
 async function findCard(board, searchKey) {
-    return (await filterCards(board)).find(({ data: { title } }) => new RegExp(`.*${searchKey}.*`, "i").test(title))
+    return (await filterCards(board)).find(({ data: { title } }) => strLike(searchKey, title))
 }
 
 async function unwrapGenerator(generator) {

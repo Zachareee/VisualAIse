@@ -10,7 +10,8 @@ import {
     getBoards, getBoard, getItems, createCard,
     deleteCard, updateCard, boardIsNull
 } from "./miroutils.mjs"
-import { chat } from "./aiutils.mjs"
+import { sortCards } from "./mirohighlevel.mjs"
+import { chat, decide } from "./aiutils.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -111,6 +112,16 @@ app.post("/chat", async (req, res) => {
 
     chat(miro.as(session), board, content)
     return res.send("ok")
+})
+
+app.post("/decide", async (req, res) => {
+    const { query: { board }, body, cookies: { session } } = req
+    if (boardIsNull(board, res)) return
+
+    res.send("ok")
+    const miroapi = miro.as(session)
+    const sortedCards = await sortCards(miroapi, board)
+    body.forEach(obj => decide(miroapi, board, obj, sortedCards))
 })
 
 app.listen(PORT, () => {
