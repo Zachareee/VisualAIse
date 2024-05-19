@@ -10,8 +10,12 @@ export async function getItems(miroapi, boardId) {
     return unwrapGenerator(await getBoard(miroapi, boardId).then(res => res.getAllItems())).catch(console.warn)
 }
 
+export function createImage(miroapi, boardId, url) {
+    return getBoard(miroapi, boardId).then(board => board.createImageItem({ data: { url } })).catch(console.warn)
+}
+
 export function createCard(miroapi, boardId, data) {
-    getBoard(miroapi, boardId).then(board => board.createCardItem(data)).catch(console.warn)
+    return getBoard(miroapi, boardId).then(board => board.createCardItem(data)).catch(console.warn)
 }
 
 export function deleteCard(miroapi, boardId, searchKey) {

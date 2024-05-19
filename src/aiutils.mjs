@@ -4,7 +4,7 @@ import { sortCards, getCategoryNames, addCard, moveCard, renameCard } from './mi
 
 const model = "interpreter"
 
-const { host } = process.env
+const { host, EDENAITOKEN } = process.env
 
 const ollama = new Ollama({ host })
 await ollama.create({ model, path: "ModelFile" })
@@ -49,9 +49,28 @@ export function decide(miroapi, board, data, sortedCards) {
             moveCard(miroapi, board, { title, owner }, sortedCards)
             break
         case "renameCard":
-            renameCard(miroapi, board, {title, newTitle}, sortedCards)
+            renameCard(miroapi, board, { title, newTitle }, sortedCards)
             break
         default:
             console.log("default")
     }
+}
+
+export async function generateImage(text) {
+    const provider = "replicate/classic"
+    const res = await fetch("https://api.edenai.run/v2/image/generation", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${EDENAITOKEN}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            providers: provider,
+            text,
+            resolution: "256x256",
+        })
+    }).then(res => res.json())
+    console.log(res)
+    console.log(res[provider].items[0].image_resource_url)
+    return res
 }
