@@ -14,9 +14,10 @@ export function addCard(miroapi, boardId, { title, owner }, sortedCards) {
             y: y + VSPACE
         }
     }
+    createCard(miroapi, boardId, data)
     sortedCards[x].push(data)
     const offset = "50%"
-    generateImage(title).then(url => createImage(miroapi, boardId, url).then(async image => image.connectTo({ id: (await createCard(miroapi, boardId, data)).id, position: { x: offset, y: offset } })))
+    // generateImage(title).then(url => createImage(miroapi, boardId, url).then(async image => image.connectTo({ id: (await ).id, position: { x: offset, y: offset } })))
 }
 
 export async function removeCard(miroapi, boardId, owner, options) { }
@@ -43,7 +44,7 @@ export async function renameCard(miroapi, boardId, { title, newTitle }, sortedCa
 }
 
 export function getCategoryNames(sortedCards) {
-    return Object.entries(sortedCards).map(([, arr]) => arr[0].data.title)
+    return Object.entries(sortedCards).map(([, arr]) => arr[0].data.title.replaceAll(/<[^>]>/g, ""))
 }
 
 export async function sortCards(miroapi, boardId) {
@@ -62,7 +63,7 @@ export async function sortCards(miroapi, boardId) {
 }
 
 function getLastCard(sortedCards, owner) {
-    const arr = Object.entries(sortedCards).find(([key, value]) => strLike(owner, value[0].data.title))[1]
-    const card = arr ? arr[arr.length - 1] : { x: 0, y: 0 }
+    const arr = Object.entries(sortedCards).find(([key, value]) => strLike(owner, value[0].data.title))?.[1]
+    const card = arr ? arr[arr.length - 1] : { position: { x: 0, y: 0 } }
     return card
 }

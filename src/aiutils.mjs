@@ -12,22 +12,20 @@ await ollama.create({ model, path: "ModelFile" })
 export async function chat(miroapi, board, content) {
     const sortedCards = await sortCards(miroapi, board)
     const categories = getCategoryNames(sortedCards)
-    chatToJSON(content, categories).then(data => data.forEach(obj => decide(miroapi, board, obj, sortedCards)))
+    chatToJSON(content, categories)
+        .then(data => data.length ? data.forEach(obj => decide(miroapi, board, obj, sortedCards))
+            : decide(miroapi, board, data, sortedCards))
 }
 
 async function chatToJSON(content, categories) {
     while (true) {
         try {
             // console.log(content, categories)
-            content = JSON.stringify(categories) + "\n" + content
-            const res = JSON.parse(await ollama.chat({
+            content = "CATEGORIES: " + JSON.stringify(categories) + "\n" + content
+            return JSON.parse(await ollama.chat({
                 model,
                 messages: [{ role: "user", content }]
             }).then(res => res.message.content))
-
-            console.log(res)
-            if (!res.length) throw new Error("Not an array")
-            return res
         } catch (err) {
             console.warn(err)
         }
@@ -40,16 +38,16 @@ export function decide(miroapi, board, data, sortedCards) {
 
     switch (command) {
         case "addCard":
-            addCard(miroapi, board, { title, owner }, sortedCards)
+            addCard(miroapi, board, data, sortedCards)
             break
         case "removeCard":
             deleteCard(miroapi, board, title)
             break
         case "moveCard":
-            moveCard(miroapi, board, { title, owner }, sortedCards)
+            moveCard(miroapi, board, data, sortedCards)
             break
         case "renameCard":
-            renameCard(miroapi, board, { title, newTitle }, sortedCards)
+            renameCard(miroapi, board, data, sortedCards)
             break
         default:
             console.log("default")
@@ -69,8 +67,8 @@ export async function generateImage(text) {
             text,
             resolution: "256x256",
         })
-    }).then(res => res.json())
+    }).then(res => res.json()).catch(console.warn)
     console.log(res)
-    console.log(res[provider].items[0].image_resource_url)
+    console.log(res.items[0].image_resource_url)
     return res
 }
