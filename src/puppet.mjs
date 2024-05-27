@@ -7,6 +7,7 @@ stealth.enabledEvasions.delete("media.codecs")
 puppeteer.use(stealth)
 
 const screenshotFolder = "screenshots"
+const box = { x: 0, y: 56, width: 1920, height: 968 }
 
 export default class MiroBrowser {
     static async init() {
@@ -27,7 +28,7 @@ export default class MiroBrowser {
         await click(page, "button[data-testid='canvas-controls-zoom-fit']")
 
         console.log("Taking screenshot")
-        await page.screenshot({ path: `${screenshotFolder}/${filename}.png` })
+        await page.screenshot({ path: `${screenshotFolder}/${filename}.png`, clip: box })
     }
 
     static async close() {
