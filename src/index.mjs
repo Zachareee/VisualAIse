@@ -12,6 +12,7 @@ import {
 } from "./miroutils.mjs"
 import { sortCards } from "./mirohighlevel.mjs"
 import { chat, decide } from "./aiutils.mjs"
+import MiroBrowser from "./puppet.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -50,8 +51,21 @@ app.get("/auth", async (req, res) => {
     return res.redirect("/")
 })
 
+app.get("/ss", async (req, res) => {
+    const { boardId } = req.query
+    try {
+        if (!boardId) throw new Error("boardId missing!")
+        await MiroBrowser.screenshot(boardId)
+        res.send("Saved")
+    } catch (err) {
+        console.log(err)
+        res.status(400).send(err.toString())
+    }
+})
+
 // mounted after "/" to avoid infinite redirects
 // after "/auth" to avoid intercepting auth code
+// after "/ss" which shouldn't need user creds
 app.use(async (req, res, next) => {
     const { session } = req.cookies
 
@@ -126,4 +140,8 @@ app.post("/decide", async (req, res) => {
 
 app.listen(PORT, () => {
     console.log("Listening on port", PORT)
+})
+
+process.on("SIGTERM", async () => {
+    await MiroBrowser.close()
 })

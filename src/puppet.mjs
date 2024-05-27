@@ -7,29 +7,35 @@ stealth.enabledEvasions.delete("media.codecs")
 puppeteer.use(stealth)
 
 const screenshotFolder = "screenshots"
-const headless = true;
 
-(async () => {
-    const browser = await puppeteer.launch({
-        headless
-    })
-    const page = await browser.newPage()
+export default class MiroBrowser {
+    static async init() {
+        this.page = await puppeteer.launch().then(browser => browser.newPage())
+    }
 
-    const url = "https://miro.com/app/board/uXjVKKKXSG0=/"
-    await page.goto(url).then(res => {
-        if (url !== res.url()) throw new Error("Please make your miro board public")
-    })
+    static async screenshot(boardId, filename = "ss") {
+        const page = this.page
 
-    await page.setViewport({ width: 1920, height: 1080 });
+        const url = `https://miro.com/app/board/${boardId}/`
+        await page.goto(url).then(res => {
+            if (url !== res.url()) throw new Error("Please make your miro board public")
+        })
 
-    // fit screen to window
-    await click(page, "button[data-testid='canvas-controls-zoom-fit']")
+        await page.setViewport({ width: 1920, height: 1080 });
 
-    console.log("Taking screenshot")
-    await page.screenshot({ path: `${screenshotFolder}/ss.png` })
+        // fit screen to window
+        await click(page, "button[data-testid='canvas-controls-zoom-fit']")
 
-    await browser.close();
-})()
+        console.log("Taking screenshot")
+        await page.screenshot({ path: `${screenshotFolder}/${filename}.png` })
+    }
+
+    static async close() {
+        await this.page.browser().close()
+    }
+}
+
+MiroBrowser.init()
 
 async function click(page, selector, options) {
     console.log("Clicking", selector)
