@@ -9,7 +9,8 @@ import { log, warn } from 'console'
 const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
 const imp = {
-    constructCard: async () => ({ command: "doNothing" })
+    constructCard: async () => {throw new Error("Not implemented")},
+    findCategories: async () => {throw new Error("Not implemented")}
 }
 
 function readFile() {
@@ -43,20 +44,19 @@ switch (IMPLEMENTATION) {
 export async function chat(miroapi, board, content) {
     const sortedCards = await sortCards(miroapi, board)
     // const categories = getCategoryNames(sortedCards)
-    chatToJSON(content, await imp.findCategories(JSON.stringify(findClusters(await getItems(miroapi, board)))))
-        .then(data => data.length ? data.forEach(obj => decide(miroapi, board, obj, sortedCards))
-            : decide(miroapi, board, data, sortedCards))
+    const clusters = findClusters(await getItems(miroapi, board))
+    chatToJSON(content, await imp.findCategories(JSON.stringify(clusters)))
+        .then(data => data.length ? data.forEach(obj => decide(miroapi, board, obj, clusters, sortedCards))
+            : decide(miroapi, board, data, clusters, sortedCards))
 }
 
 async function chatToJSON(content, categories) {
     while (true) {
         try {
-            log(categories)
             content = "CATEGORIES: " + categories + "\n" + content
             const result = await imp.constructCard(content)
-            log(result)
             // fs.writeFileSync("result.txt", result)
-            return {...JSON.parse(result), categories}
+            return { ...JSON.parse(result)[0], categories: JSON.parse(categories) }
         } catch (err) {
             warn(err)
             return
@@ -64,13 +64,15 @@ async function chatToJSON(content, categories) {
     }
 }
 
-export function decide(miroapi, board, data, sortedCards) {
-    log(data)
+export function decide(miroapi, board, data, clusters, sortedCards) {
     const { command, title, newTitle, owner, categories } = data
+    const arr = clusters[categories.indexOf(owner)]
+    log(clusters, categories, owner)
+    const newOwner = arr[Math.floor(Math.random() * arr.length)]
 
     switch (command) {
         case "addCard":
-            addCard(miroapi, board, data, categories)
+            addCard(miroapi, board, { ...data, owner: newOwner }, sortedCards)
             break
         case "removeCard":
             deleteCard(miroapi, board, title)

@@ -125,6 +125,7 @@ app.post("/chat", async (req, res) => {
     const { cookies: { session }, body: { content }, query: { board } } = req
     if (boardIsNull(board, res)) return
 
+    console.log(content)
     chat(miro.as(session), board, content)
     return res.send("ok")
 })

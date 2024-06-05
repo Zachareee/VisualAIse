@@ -2,7 +2,7 @@ import clustering from "density-clustering"
 import { stripTag } from "./mirohighlevel.mjs"
 
 const dbscan = new clustering.DBSCAN()
-const defaultRadius = 300
+export const defaultRadius = 300
 const defaultPoints = 2
 
 export function findClusters(data, radius = defaultRadius, minPoints = defaultPoints) {
