@@ -1,5 +1,24 @@
+import clustering from "density-clustering"
+import { stripTag } from "./mirohighlevel.mjs"
+
+const dbscan = new clustering.DBSCAN()
+const defaultRadius = 300
+const defaultPoints = 2
+
+export function findClusters(data, radius = defaultRadius, minPoints = defaultPoints) {
+    const points = [], names = []
+    data.forEach(e => {
+        const { position: { x, y }, data: { title } } = e
+        points.push([x, y])
+        names.push(stripTag(title))
+    });
+
+    const clusters = dbscan.run(points, radius, minPoints)
+
+    return clusters.map(cluster => cluster.map(idx => names[idx]))
+}
 // Code adapted from https://github.com/AndreyGermanov/yolov8_onnx_nodejs/blob/main/object_detector.js
-import ort from "onnxruntime-node"
+/*import ort from "onnxruntime-node"
 import sharp from "sharp"
 
 // tensor only allows 640(?)
@@ -32,4 +51,4 @@ async function runModel({ output: input }) {
     return data["output0"].data
 }
 
-readImage("screenshots/ss.png").then(output => runModel(output))
+readImage("screenshots/ss.png").then(output => runModel(output))*/

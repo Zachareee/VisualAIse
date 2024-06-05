@@ -4,7 +4,7 @@ import { createCard, createImage, filterCards, findCardOnBoard, getBoard, strLik
 const VSPACE = 60 + 20, HSPACE = 320 + 20
 
 export function addCard(miroapi, boardId, { title, owner }, sortedCards) {
-    const { position: { x, y } } = getLastCard(sortedCards, owner)
+    const { position: { x, y } } = randomPosition //getLastCard(sortedCards, owner)
     const data = {
         data: {
             title
@@ -44,7 +44,11 @@ export async function renameCard(miroapi, boardId, { title, newTitle }, sortedCa
 }
 
 export function getCategoryNames(sortedCards) {
-    return Object.entries(sortedCards).map(([, arr]) => arr[0].data.title.replaceAll(/<[^>]>/g, ""))
+    return Object.entries(sortedCards).map(([, arr]) => stripTag(arr[0].data.title))
+}
+
+export function stripTag(str) {
+    return str.replaceAll(/<[^>]*>/g, "")
 }
 
 export async function sortCards(miroapi, boardId) {

@@ -13,6 +13,7 @@ import {
 import { sortCards } from "./mirohighlevel.mjs"
 import { chat, decide } from "./aiutils.mjs"
 import MiroBrowser from "./puppet.mjs"
+import { findClusters } from "./clustering.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -52,10 +53,10 @@ app.get("/auth", async (req, res) => {
 })
 
 app.get("/ss", async (req, res) => {
-    const { boardId } = req.query
+    const { board } = req.query
     try {
-        if (!boardId) throw new Error("boardId missing!")
-        await MiroBrowser.screenshot(boardId)
+        if (!board) throw new Error("boardId missing!")
+        await MiroBrowser.screenshot(board)
         res.send("Saved")
     } catch (err) {
         console.log(err)
@@ -126,6 +127,12 @@ app.post("/chat", async (req, res) => {
 
     chat(miro.as(session), board, content)
     return res.send("ok")
+})
+
+app.get("/clusters", async (req, res) => {
+    const { cookies: { session }, query: { board, radius, minPoints } } = req
+
+    res.send(findClusters(await getItems(miro.as(session), board), radius, minPoints))
 })
 
 app.post("/decide", async (req, res) => {
