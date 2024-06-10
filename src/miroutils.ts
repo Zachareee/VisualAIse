@@ -40,7 +40,7 @@ export async function findCardOnBoard(miroapi: MiroApi, boardId: string, searchK
 }
 
 export async function filterCards(board: Board) {
-    return <NonNullable<CardItem>[]>(await unwrapGenerator(board.getAllItems())).filter(({ type }) => type === "card")
+    return <CardItem[]>(await unwrapGenerator(board.getAllItems())).filter(({ type }) => type === "card")
 }
 
 export function strLike(regex: string, test: string | undefined): boolean {
