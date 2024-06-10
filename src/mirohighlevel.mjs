@@ -27,7 +27,7 @@ async function randomPosition(owner, miroapi, boardId) {
     const { position: { x, y } } = card
     const angle = Math.floor(Math.random() * 360)
     const radius = defaultRadius - 50 // make sure the card is nearer than the max radius
-    return {position: {x: x + radius * Math.sin(angle), y: y + radius * Math.cos(angle)}}
+    return { position: { x: x + radius * Math.sin(angle), y: y + radius * Math.cos(angle) } }
 }
 
 export async function removeCard(miroapi, boardId, owner, options) { }
