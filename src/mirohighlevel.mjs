@@ -1,6 +1,6 @@
 import { generateImage } from "./aiutils.mjs";
 import { defaultRadius } from "./clustering.mjs";
-import { createCard, createImage, filterCards, findCardOnBoard, getBoard, strLike, updateCard } from "./miroutils.mjs";
+import { createCard, createImage, filterItems, findCardOnBoard, getBoard, strLike, updateCard } from "./miroutils.mjs";
 
 const VSPACE = 60 + 20, HSPACE = 320 + 20
 
@@ -64,7 +64,7 @@ export function stripTag(str) {
 export async function sortCards(miroapi, boardId) {
     const columns = {}
     await getBoard(miroapi, boardId)
-        .then(board => filterCards(board))
+        .then(board => filterItems(board, "card"))
         .then(cards => cards.forEach(card => {
             if (!columns[card.position.x]) columns[card.position.x] = [card]
             else columns[card.position.x].push(card)

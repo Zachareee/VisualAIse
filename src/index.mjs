@@ -5,13 +5,13 @@ import { resolve } from "path"
 import { renderFile } from "ejs"
 
 // custom utils
-import Storage from "./store.ts"
+import Storage from "./store.mjs"
 import {
     getBoards, getBoard, getItems, createCard,
     deleteCard, updateCard, boardIsNull
-} from "./miroutils.ts"
+} from "./miroutils.mjs"
 import { sortCards } from "./mirohighlevel.mjs"
-import { chat, decide } from "./aiutils.ts"
+import { chat, decide } from "./aiutils.mjs"
 import MiroBrowser from "./puppet.mjs"
 import { findClusters } from "./clustering.mjs"
 

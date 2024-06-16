@@ -1,21 +1,24 @@
 import { Ollama } from 'ollama'
 import OpenAI from 'openai'
 import fs from 'fs'
-import { deleteCard, getItems } from './miroutils.ts'
+import { deleteCard, getItems } from './miroutils.mjs'
 import { sortCards, addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import { findClusters } from './clustering.mjs'
 import { log, warn } from 'console'
-import { MiroApi } from '@mirohq/miro-api'
 
 const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
 const imp = {
-    constructCard: async (_: string): Promise<string | null> => { throw new Error("Not implemented") },
-    findCategories: async (_: string): Promise<string | null> => { throw new Error("Not implemented") }
+    constructCard: async () => { throw new Error("Not implemented") },
+    findCategories: async () => { throw new Error("Not implemented") }
 }
 
-function readFile() {
+function readSystem() {
     return fs.readFileSync("System.txt", "ascii")
+}
+
+function readCategories() {
+    return fs.readFileSync("findCategories.txt", "ascii")
 }
 
 switch (IMPLEMENTATION) {
@@ -30,22 +33,21 @@ switch (IMPLEMENTATION) {
         break
     case "openai":
         const openai = new OpenAI()
-        const system = readFile()
         imp.findCategories = async content => openai.chat.completions.create({
             model: "gpt-3.5-turbo",
-            messages: [{ role: "system", content: "Based on the INPUT groups of JSON arrays, reply with a JSON array, replacing each INPUT group with a single category" }, { role: "user", content }]
+            messages: [{ role: "system", content: readCategories() }, { role: "user", content }]
         }).then(data => data.choices[0]?.message?.content)
         imp.constructCard = async content => openai.chat.completions.create({
             model: "gpt-3.5-turbo",
-            messages: [{ role: "system", content: system }, { role: "user", content }]
+            messages: [{ role: "system", content: readSystem() }, { role: "user", content }]
         }).then(data => data.choices[0]?.message?.content)
         break
 }
 
-export async function chat(miroapi: MiroApi, board: string, content: string) {
+export async function chat(miroapi, board, content) {
     const sortedCards = await sortCards(miroapi, board)
     // const categories = getCategoryNames(sortedCards)
-    const clusters = <string[][]>findClusters(await getItems(miroapi, board))
+    const clusters = findClusters(await getItems(miroapi, board))
     const categories = await imp.findCategories(JSON.stringify(clusters || "[]"))
     if (categories)
         chatToJSON(content, categories)
@@ -53,7 +55,7 @@ export async function chat(miroapi: MiroApi, board: string, content: string) {
                 : decide(miroapi, board, data, clusters, sortedCards))
 }
 
-async function chatToJSON(content: string, categories: string) {
+async function chatToJSON(content, categories) {
     while (true) {
         try {
             content = "CATEGORIES: " + categories + "\n" + content
@@ -67,7 +69,7 @@ async function chatToJSON(content: string, categories: string) {
     }
 }
 
-export function decide(miroapi: MiroApi, board: string, data: { command: any; title: any; newTitle: any; owner: any; categories: any }, clusters: { [x: string]: any }, sortedCards: {} | undefined) {
+export function decide(miroapi, board, data, clusters, sortedCards) {
     const { command, title, newTitle, owner, categories } = data
     const arr = clusters[categories.indexOf(owner)]
     log(clusters, categories, owner)
