@@ -122,11 +122,15 @@ app.delete("/card", async (req, res) => {
 })
 
 app.post("/chat", async (req, res) => {
-    const { cookies: { session }, body: { content }, query: { board } } = req
+    const { cookies: { session }, body: content, query: { board } } = req
     if (boardIsNull(board, res)) return
 
-    console.log(content)
-    chat(miro.as(session), board, content)
+    console.log("Convo received:", content)
+    getBoard(miro.as(session), board).then(async board => {
+        for (const text of content) {
+            await chat(board, text)
+        }
+    })
     return res.send("ok")
 })
 

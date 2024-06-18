@@ -1,24 +1,43 @@
 import { Ollama } from 'ollama'
 import OpenAI from 'openai'
 import fs from 'fs'
-import { deleteCard, getItems } from './miroutils.mjs'
-import { sortCards, addCard, moveCard, renameCard } from './mirohighlevel.mjs'
+import { createStickyNote, deleteCard, findItem, findItemOnBoard, getItems } from './miroutils.mjs'
+import { sortCards, addCard, moveCard, renameCard, createCalendar } from './mirohighlevel.mjs'
 import { findClusters } from './clustering.mjs'
-import { log, warn } from 'console'
+import { MiroApi } from '@mirohq/miro-api'
 
+const DEBUG = true
+const log = DEBUG ? console.log : () => { }
 const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
-const imp = {
-    constructCard: async () => { throw new Error("Not implemented") },
-    findCategories: async () => { throw new Error("Not implemented") }
-}
+/**
+ * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" | "createJSONDates" | "listOthers" | "conversationType"} IMPLEMENTATION
+ */
 
+/**
+ * 
+ * @returns {Record<IMPLEMENTATION, string>}
+ */
 function readSystem() {
-    return fs.readFileSync("System.txt", "ascii")
+    return JSON.parse(fs.readFileSync("System.json", "ascii"))
 }
 
-function readCategories() {
-    return fs.readFileSync("findCategories.txt", "ascii")
+/**
+ * @type {Record<IMPLEMENTATION, (message: string) => Promise<string>>}
+ */
+const imp = {
+    constructCard: async msg => msg,
+    findCategories: async msg => msg,
+    checkCalendarDates: async msg => msg,
+    createJSONDates: async msg => msg,
+    listOthers: async msg => msg,
+    conversationType: async msg => msg
+}
+
+const CONVOTYPES = {
+    CALENDAR: "calendar",
+    TASKLIST: "tasklist",
+    UNDETERMINED: "undetermined"
 }
 
 switch (IMPLEMENTATION) {
@@ -33,40 +52,75 @@ switch (IMPLEMENTATION) {
         break
     case "openai":
         const openai = new OpenAI()
-        imp.findCategories = async content => openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [{ role: "system", content: readCategories() }, { role: "user", content }]
-        }).then(data => data.choices[0]?.message?.content)
-        imp.constructCard = async content => openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [{ role: "system", content: readSystem() }, { role: "user", content }]
-        }).then(data => data.choices[0]?.message?.content)
-        break
-}
-
-export async function chat(miroapi, board, content) {
-    const sortedCards = await sortCards(miroapi, board)
-    // const categories = getCategoryNames(sortedCards)
-    const clusters = findClusters(await getItems(miroapi, board))
-    const categories = await imp.findCategories(JSON.stringify(clusters || "[]"))
-    if (categories)
-        chatToJSON(content, categories)
-            .then(data => data.length ? data.forEach(obj => decide(miroapi, board, obj, clusters, sortedCards))
-                : decide(miroapi, board, data, clusters, sortedCards))
-}
-
-async function chatToJSON(content, categories) {
-    while (true) {
-        try {
-            content = "CATEGORIES: " + categories + "\n" + content
-            const result = await imp.constructCard(content)
-            // fs.writeFileSync("result.txt", result)
-            return { ...JSON.parse(result || "{}")[0], categories: JSON.parse(categories) }
-        } catch (err) {
-            warn(err)
-            return
+        const system = readSystem()
+        for (const prop in imp) {
+            imp[prop] = createOpenAIModel(openai, system[prop])
         }
+        break
+    default:
+        throw new Error("AI model not set")
+}
+
+/**
+ * @type {Exclude<keyof CONVOTYPES, "UNDETERMINED">}
+ */
+let convotype
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {string} content 
+ */
+export async function chat(board, content) {
+    log("DEBUG: At chat")
+    if (!convotype) await imp.conversationType(content).then(
+        async result => {
+            console.log("Conversation type:", result)
+            switch (result) {
+                case CONVOTYPES.CALENDAR:
+                    convotype = result
+                    createCalendar(board)
+                    break
+                case CONVOTYPES.TASKLIST:
+                    convotype = result
+                    break
+            }
+        })
+
+    else switch (convotype) {
+        case CONVOTYPES.CALENDAR:
+            log("DEBUG: At else")
+            decideCalendar(board, content)
+            break
     }
+}
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {string} content 
+ */
+function decideCalendar(board, content) {
+    imp.checkCalendarDates(content).then(result => {
+        console.log("Calendar dates found for", content, result)
+        if (Boolean(result))
+            imp.createJSONDates(content)
+                .then(JSON.parse).then(
+                    /**
+                     * @param {Record<string, string>} JSONarr
+                     */
+                    JSONarr => {
+                        console.log("JSON format of dates:", JSONarr)
+                        Object.entries(JSONarr).forEach(([ day, activity ]) => {
+                            findItem(board, day, "shape", "content").then(square => {
+                                console.log("Selected square:", JSON.stringify(square))
+                                const { position } = square
+                                createStickyNote(board, { content: activity, position })
+                            })
+                        })
+                    }
+                )
+    })
 }
 
 export function decide(miroapi, board, data, clusters, sortedCards) {
@@ -106,8 +160,21 @@ export async function generateImage(text) {
             text,
             resolution: "256x256",
         })
-    }).then(res => res.json()).catch(warn)
+    }).then(res => res.json()).catch(console.warn)
     log(res)
     log(res.items[0].image_resource_url)
     return res
+}
+
+/**
+ * 
+ * @param {OpenAI} openai 
+ * @param {string} system 
+ * @returns {(content: string) => Promise<string>}
+ */
+function createOpenAIModel(openai, system) {
+    return content => openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "system", content: system + "\n#INPUT" }, { role: "user", content: content + "\n#OUTPUT" }]
+    }).then(data => data.choices[0]?.message?.content)
 }

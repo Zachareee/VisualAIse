@@ -1,11 +1,47 @@
+import { Board, MiroApi } from "@mirohq/miro-api";
 import { generateImage } from "./aiutils.mjs";
 import { defaultRadius } from "./clustering.mjs";
-import { createCard, createImage, filterItems, findCardOnBoard, getBoard, strLike, updateCard } from "./miroutils.mjs";
+import { createBox, createCard, createFrame, createImage, filterItems, findItemOnBoard, getBoard, strLike, updateCard } from "./miroutils.mjs";
 
 const VSPACE = 60 + 20, HSPACE = 320 + 20
 
+/**
+ * @param {Board} board
+ */
+export async function createCalendar(board) {
+    const size = 300
+    const days = 31
+    const width = 7 * size, height = Math.ceil(days / 7) * size
+    const x = width / 2 - 0.5 * size, y = height / 2 - 0.5 * size
+
+    // calendar
+    const { id: calendar } = await createFrame(board, {
+        title: "Calendar",
+        bgColor: "#ffcee0",
+        position: { x, y },
+        geometry: { height, width }
+    })
+
+    for (let i = 0; i < days; i++)
+        createBox(board, {
+            size, content: `${i + 1}`,
+            position: {
+                x: size * (i % 7),
+                y: size * Math.trunc(i / 7)
+            }, parent: calendar
+        })
+
+    // list
+    createFrame(board, {
+        title: "Places",
+        bgColor: "#f5f6f8",
+        position: { x: width + size, y },
+        geometry: { width: size, height }
+    })
+}
+
 export async function addCard(miroapi, boardId, { title, owner }, sortedCards) {
-    const { position: { x, y } } = await randomPosition(owner, miroapi, boardId) //getLastCard(sortedCards, owner)
+    const { position: { x, y } } = await randomPosition(owner, miroapi, boardId, "card") //getLastCard(sortedCards, owner)
     const data = {
         data: {
             title
@@ -21,10 +57,18 @@ export async function addCard(miroapi, boardId, { title, owner }, sortedCards) {
     // generateImage(title).then(url => createImage(miroapi, boardId, url).then(async image => image.connectTo({ id: (await ).id, position: { x: offset, y: offset } })))
 }
 
-async function randomPosition(owner, miroapi, boardId) {
-    const card = await findCardOnBoard(miroapi, boardId, owner)
-    console.log(card)
-    const { position: { x, y } } = card
+/**
+ * 
+ * @param {string} owner 
+ * @param {MiroApi} miroapi 
+ * @param {string} boardId 
+ * @param {keyof import("./miroutils.mjs").Filters} type 
+ * @returns 
+ */
+async function randomPosition(owner, miroapi, boardId, type) {
+    const item = await findItemOnBoard(owner, miroapi, boardId, type)
+    console.log(item)
+    const { position: { x, y } } = item
     const angle = Math.floor(Math.random() * 360)
     const radius = defaultRadius - 50 // make sure the card is nearer than the max radius
     return { position: { x: x + radius * Math.sin(angle), y: y + radius * Math.cos(angle) } }

@@ -1,5 +1,14 @@
-import { Board, CardItem, MiroApi, StickyNoteItem } from "@mirohq/miro-api"
-import { CardCreateRequest, StickyNoteCreateRequest } from "@mirohq/miro-api/dist/api.js"
+import { Board, CardItem, MiroApi, ShapeItem, StickyNoteItem } from "@mirohq/miro-api"
+import { CardCreateRequest, FrameStyle, GeometryNoRotation, PositionChange, StickyNoteCreateRequest } from "@mirohq/miro-api/dist/api.js"
+
+/**
+ * @typedef {{card: CardItem, sticky_note: StickyNoteItem, shape: ShapeItem}} Filters
+ */
+
+/**
+ * 
+ * @typedef {{card: "title", sticky_note: "content", shape: "content"}} TextLocation
+ */
 
 export async function getBoards(miroapi) {
     return unwrapGenerator(miroapi.getAllBoards())
@@ -24,6 +33,47 @@ export async function createImage(miroapi, boardId, url) {
 }
 
 /**
+ * @param {Board} board
+ * @param {{size: number, content: string, position: PositionChange, parent: string}} param2 
+ */
+export async function createBox(board, { size, content, position, parent }) {
+    return board.createShapeItem({
+        data: {
+            content
+        },
+        geometry: {
+            height: size,
+            width: size
+        },
+        style: {
+            borderOpacity: 1,
+            fillOpacity: 1
+        },
+        position,
+        parent
+    })
+}
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {{string, bgColor: FrameStyle["fillColor"], geometry: GeometryNoRotation, position: PositionChange}} param1 
+ * @returns 
+ */
+export async function createFrame(board, { title, bgColor: fillColor, geometry, position }) {
+    return board.createFrameItem({
+        data: {
+            title
+        },
+        style: {
+            fillColor
+        },
+        geometry,
+        position
+    })
+}
+
+/**
  * 
  * @param {MiroApi} miroapi 
  * @param {string} boardId 
@@ -36,13 +86,15 @@ export async function createCard(miroapi, boardId, data) {
 
 /**
  * 
- * @param {MiroApi} miroapi 
- * @param {string} boardId 
- * @param {StickyNoteCreateRequest} data 
+ * @param {Board} board
+ * @param {{content: string, position: PositionChange}} param1 
  * @returns {Promise<StickyNoteItem>}
  */
-export async function createStickyNote(miroapi, boardId, data) {
-    return getBoard(miroapi, boardId).then(board => board.createStickyNoteItem(data)).catch(console.warn)
+export async function createStickyNote(board, {content, position}) {
+    return board.createStickyNoteItem({
+        data: {content},
+        position
+    })
 }
 
 export function deleteCard(miroapi, boardId, searchKey) {
@@ -63,20 +115,18 @@ export function boardIsNull(board, res) {
  * @param {MiroApi} miroapi 
  * @param {string} boardId 
  * @param {string} searchKey 
+ * @param {keyof Filters} type
  * @returns 
  */
-export async function findCardOnBoard(miroapi, boardId, searchKey) {
-    return getBoard(miroapi, boardId).then(board => findCard(board, searchKey))
+export async function findItemOnBoard(board, searchKey, type) {
+    return getBoard(miroapi, boardId).then(board => findItem(board, searchKey, type))
 }
 
 /**
- *
- * @typedef {{card: CardItem, sticky_note: StickyNoteItem}} Filters
- * @typedef {keyof Filters} T
+ * @template {keyof Filters} T
  * @param {Board} board 
- * @param {import("@mirohq/miro-api/dist/highlevel/Item").WidgetItem}
  * @param {T} widgetType 
- * @returns {(Promise<Filters[T][]>)}
+ * @returns {Promise<Filters[T][]>}
  */
 export async function filterItems(board, widgetType) {
     return (await unwrapGenerator(board.getAllItems())).filter(({ type }) => type === widgetType)
@@ -89,17 +139,19 @@ export async function filterItems(board, widgetType) {
  * @returns {boolean}
  */
 export function strLike(regex, test) {
-    return test ? new RegExp(`.*${regex}.*`, "i").test(test) : false
+    return new RegExp(`.*${regex}.*`, "i").test(test)
 }
 
 /**
  * 
+ * @template {keyof TextLocation} T
  * @param {Board} board 
  * @param {string} searchKey 
- * @returns 
+ * @param {T} type
+ * @param {TextLocation[T]} textLocation
  */
-async function findCard(board, searchKey) {
-    return (await filterItems(board, "card")).find(card => strLike(searchKey, card.data?.title))
+export async function findItem(board, searchKey, type, textLocation) {
+    return (await filterItems(board, type)).find(card => strLike(searchKey, card.data[textLocation]))
 }
 
 /**
