@@ -1,10 +1,11 @@
 import { Ollama } from 'ollama'
 import OpenAI from 'openai'
 import fs from 'fs'
-import { createStickyNote, deleteCard, findItem, findItemOnBoard, getItems } from './miroutils.mjs'
+import { createStickyNote, deleteCard, findItem, GONES, getItems } from './miroutils.mjs'
 import { sortCards, addCard, moveCard, renameCard, createCalendar } from './mirohighlevel.mjs'
 import { findClusters } from './clustering.mjs'
 import { MiroApi } from '@mirohq/miro-api'
+import { calendar } from './pipelines/calendar.mjs'
 
 const DEBUG = true
 const log = DEBUG ? console.log : () => { }
@@ -25,7 +26,7 @@ function readSystem() {
 /**
  * @type {Record<IMPLEMENTATION, (message: string) => Promise<string>>}
  */
-const imp = {
+export const imp = {
     constructCard: async msg => msg,
     findCategories: async msg => msg,
     checkCalendarDates: async msg => msg,
@@ -62,65 +63,31 @@ switch (IMPLEMENTATION) {
 }
 
 /**
- * @type {Exclude<keyof CONVOTYPES, "UNDETERMINED">}
- */
-let convotype
-
-/**
  * 
  * @param {Board} board 
  * @param {string} content 
  */
 export async function chat(board, content) {
     log("DEBUG: At chat")
-    if (!convotype) await imp.conversationType(content).then(
+    await imp.conversationType(content).then(
         async result => {
             console.log("Conversation type:", result)
             switch (result) {
                 case CONVOTYPES.CALENDAR:
-                    convotype = result
+                    calendar(board, content)
                     createCalendar(board)
                     break
                 case CONVOTYPES.TASKLIST:
-                    convotype = result
                     break
             }
         })
 
-    else switch (convotype) {
+    switch (convotype) {
         case CONVOTYPES.CALENDAR:
             log("DEBUG: At else")
             decideCalendar(board, content)
             break
     }
-}
-
-/**
- * 
- * @param {Board} board 
- * @param {string} content 
- */
-function decideCalendar(board, content) {
-    imp.checkCalendarDates(content).then(result => {
-        console.log("Calendar dates found for", content, result)
-        if (Boolean(result))
-            imp.createJSONDates(content)
-                .then(JSON.parse).then(
-                    /**
-                     * @param {Record<string, string>} JSONarr
-                     */
-                    JSONarr => {
-                        console.log("JSON format of dates:", JSONarr)
-                        Object.entries(JSONarr).forEach(([ day, activity ]) => {
-                            findItem(board, day, "shape", "content").then(square => {
-                                console.log("Selected square:", JSON.stringify(square))
-                                const { position } = square
-                                createStickyNote(board, { content: activity, position })
-                            })
-                        })
-                    }
-                )
-    })
 }
 
 export function decide(miroapi, board, data, clusters, sortedCards) {

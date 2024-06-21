@@ -122,16 +122,28 @@ app.delete("/card", async (req, res) => {
 })
 
 app.post("/chat", async (req, res) => {
-    const { cookies: { session }, body: content, query: { board } } = req
+    const { cookies: { session }, body: { content }, query: { board } } = req
     if (boardIsNull(board, res)) return
 
-    console.log("Convo received:", content)
-    getBoard(miro.as(session), board).then(async board => {
-        for (const text of content) {
-            await chat(board, text)
-        }
-    })
+    console.log("Message received:", content)
+    getBoard(miro.as(session), board).then(async board =>
+        chat(board, text)
+    )
     return res.send("ok")
+})
+
+app.post("/chats", async (req, res) => {
+    /**
+     * @type {{body: string[]}}
+     */
+    const { cookies: { session }, body: content, query: { board } } = req
+    if (boardIsNull(board, res)) return
+    console.log("Convo is", content)
+    getBoard(miro.as(session), board).then(async board => {
+        for (const text in content)
+            await chat(board, text)
+    })
+    res.send("ok")
 })
 
 app.get("/clusters", async (req, res) => {
