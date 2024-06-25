@@ -7,7 +7,7 @@ import { renderFile } from "ejs"
 // custom utils
 import Storage from "./store.mjs"
 import {
-    getBoards, getBoard, getItems, createCard,
+    getBoards, getBoard, createCard,
     deleteCard, updateCard, boardIsNull
 } from "./miroutils.mjs"
 import { sortCards } from "./mirohighlevel.mjs"
@@ -140,7 +140,7 @@ app.post("/chats", async (req, res) => {
     if (boardIsNull(board, res)) return
     console.log("Convo is", content)
     getBoard(miro.as(session), board).then(async board => {
-        for (const text in content)
+        for (const text of content)
             await chat(board, text)
     })
     res.send("ok")

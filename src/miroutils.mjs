@@ -1,5 +1,6 @@
 import { Board, CardItem, FrameItem, MiroApi, ShapeItem, StickyNoteItem } from "@mirohq/miro-api"
 import { CardCreateRequest, FrameChanges, FrameStyle, GeometryNoRotation, PositionChange, StickyNoteCreateRequest } from "@mirohq/miro-api/dist/api.js"
+import _ from "lodash"
 
 /**
  * @typedef {{card: CardItem, sticky_note: StickyNoteItem, shape: ShapeItem, [FrameChanges.TypeEnum.Freeform]: FrameItem}} Filters
@@ -55,9 +56,9 @@ export async function getUnmodifiedItems(board) {
  * @param {import("@mirohq/miro-api/dist/highlevel/Item").WidgetItem} item 
  * @returns 
  */
-function boardContainsItem(board, item) {
+export function boardContainsItem(board, item) {
     for (const widgetitem of board) {
-        if (objectDeepEquals(widgetitem, item)) return true
+        if (_.isEqual(widgetitem, item)) return true
     }
     return false
 }
@@ -193,7 +194,7 @@ export async function findItem(board, searchKey, type) {
  * 
  * @param {keyof Filters} type 
  */
-function findText(type) {
+export function findText(type) {
     switch (type) {
         case FrameChanges.TypeEnum.Freeform:
         case "card":
@@ -209,34 +210,11 @@ function findText(type) {
  * @template T
  * @param {AsyncGenerator<T, void, unknown>} generator 
  */
-async function unwrapGenerator(generator) {
+export async function unwrapGenerator(generator) {
     const ls = []
     for await (const val of generator) {
         ls.push(val)
     }
 
     return ls
-}
-
-function objectDeepEquals(obj1, obj2) {
-    const result = firstObjEqualsSecond(obj1, obj2) && firstObjEqualsSecond(obj2, obj1)
-    console.log(`${obj1} = ${obj2}: ${result}`)
-    return result
-}
-
-/**
- * 
- * @param {Record<string, unknown>} obj1 
- * @param {Record<string, unknown>} obj2 
- */
-function firstObjEqualsSecond(obj1, obj2) {
-    for (const key of Object.keys(obj1)) {
-        const value = obj1[key]
-        const valuetype = typeof value
-        if (valuetype === "function") continue
-        if (valuetype === "object") if (!firstObjEqualsSecond(value, obj2[key])) return false
-        if (value !== obj2[key]) return false
-    }
-
-    return true
 }

@@ -1,10 +1,8 @@
 import { Ollama } from 'ollama'
 import OpenAI from 'openai'
 import fs from 'fs'
-import { createStickyNote, deleteCard, findItem, GONES, getItems } from './miroutils.mjs'
-import { sortCards, addCard, moveCard, renameCard, createCalendar } from './mirohighlevel.mjs'
-import { findClusters } from './clustering.mjs'
-import { MiroApi } from '@mirohq/miro-api'
+import { deleteCard} from './miroutils.mjs'
+import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import { calendar } from './pipelines/calendar.mjs'
 
 const DEBUG = true
@@ -71,23 +69,15 @@ export async function chat(board, content) {
     log("DEBUG: At chat")
     await imp.conversationType(content).then(
         async result => {
-            console.log("Conversation type:", result)
+            log("Conversation type:", result)
             switch (result) {
                 case CONVOTYPES.CALENDAR:
-                    calendar(board, content)
-                    createCalendar(board)
+                    await calendar(board, content)
                     break
                 case CONVOTYPES.TASKLIST:
                     break
             }
         })
-
-    switch (convotype) {
-        case CONVOTYPES.CALENDAR:
-            log("DEBUG: At else")
-            decideCalendar(board, content)
-            break
-    }
 }
 
 export function decide(miroapi, board, data, clusters, sortedCards) {

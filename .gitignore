@@ -3,6 +3,7 @@
 
 # data files
 *.json
+!tests/**/*.json
 !nodemon.json
 !package*.json
 
