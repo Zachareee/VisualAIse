@@ -3,22 +3,40 @@ import { imp } from "../aiutils.mjs";
 import { createFrame, unwrapGenerator, createStickyNote, findItem, boardContainsItem, findText } from "../miroutils.mjs";
 import { FrameChanges } from "@mirohq/miro-api/dist/api.js";
 import _ from "lodash"
+import Pipes from "../utils/Pipes.mjs";
+import State from "../utils/State.mjs";
 
 const CalendarFrameName = "Calendar"
 const BOXSIZE = 300
-
 /**
- * 
- * @param {Board} board 
- * @param {string} content 
+ * @type {State<Record<string, string>>}
  */
-export async function calendar(board, content) {
-    const calendar = await (
-        findItem(board, CalendarFrameName, FrameChanges.TypeEnum.Freeform)
-        || createCalendar(board))
+const state = new State({})
 
-    decideCalendar(board, content, calendar)
+class Calendar extends Pipes {
+    /**
+     * 
+     * @param {Board} board 
+     * @param {string} content 
+     */
+    async calendar(board, content) {
+        this.output = true
+        const calendar = (await findItem(board, CalendarFrameName, FrameChanges.TypeEnum.Freeform))
+            || (await createCalendar(board))
+
+        await decideCalendar(board, content, calendar)
+        return this
+    }
+
+    async finish() {
+        if (this.output) {
+            this.output = false
+            console.log("Final state is", await state.getValue())
+        }
+    }
 }
+
+export default new Calendar()
 
 /**
  * 
@@ -26,18 +44,18 @@ export async function calendar(board, content) {
  * @param {string} content 
  * @param {FrameItem} calendarframe
  */
-function decideCalendar(board, content, calendarframe) {
-    imp.checkCalendarDates(content).then(result => {
+async function decideCalendar(board, content, calendarframe) {
+    return imp.checkCalendarDates(content).then(async result => {
         console.log("Calendar dates found for", content, result)
         if (Boolean(result))
-            imp.createJSONDates(content)
+            return imp.createJSONDates(content)
                 .then(JSON.parse).then(
                     /**
                      * @param {Record<string, string>} JSONarr
                      */
                     JSONarr => {
                         console.log("JSON format of dates:", JSONarr)
-                        addDatesToBoard(board, JSONarr, calendarframe)
+                        return addDatesToBoard(board, JSONarr, calendarframe)
                     }
                 )
     })
@@ -50,14 +68,19 @@ function decideCalendar(board, content, calendarframe) {
  * @param {FrameItem} calendarframe
  */
 async function addDatesToBoard(board, array, calendarframe) {
-    prepareCalendar(board, array, calendarframe)
-    Object.entries(array).forEach(([day, activity]) => {
-        findItem(board, day, "shape").then(square => {
-            console.log("Selected square:", JSON.stringify(square))
-            const { position } = square
-            createStickyNote(board, { content: activity, position })
+    return imp.augmentCalendar(`Existing:${JSON.stringify(await state.getValue())}\nNew:${JSON.stringify(array)}`)
+        .then(result => {
+            console.log("Result of augmenting is", result)
+            return state.setValue(JSON.parse(result))
         })
-    })
+    // prepareCalendar(board, array, calendarframe)
+    // Object.entries(array).forEach(([day, activity]) => {
+    //     findItem(board, day, "shape").then(square => {
+    //         console.log("Selected square:", JSON.stringify(square))
+    //         // const { position } = square
+    //         createStickyNote(board, { content: activity, position })
+    //     })
+    // })
 }
 
 /**
@@ -67,11 +90,11 @@ async function addDatesToBoard(board, array, calendarframe) {
  * @param {FrameItem} calendarframe
  */
 async function prepareCalendar(board, array, calendarframe) {
-    const items = await getUnmodifiedItemsFromFrame(calendarframe)
-    const [min, max] = getRange(items)
+    // const items = await getUnmodifiedItemsFromFrame(calendarframe)
+    const [min, max] = getRange(state)
     const [requiredMin, requiredMax] = getRange(Object.keys(array))
-    if (requiredMin < min) {}
-    if (requiredMax < max) {}
+    if (requiredMin < min) { }
+    if (requiredMax < max) { }
 }
 
 /**
@@ -114,7 +137,7 @@ function getRange(itemarr) {
 }
 
 /** @type {ShapeItem[]}*/
-let activeBoard
+let activeBoard = []
 
 /**
  * 

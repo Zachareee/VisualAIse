@@ -14,6 +14,7 @@ import { sortCards } from "./mirohighlevel.mjs"
 import { chat, decide } from "./aiutils.mjs"
 import MiroBrowser from "./puppet.mjs"
 import { findClusters } from "./clustering.mjs"
+import Pipes from "./utils/Pipes.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -127,7 +128,7 @@ app.post("/chat", async (req, res) => {
 
     console.log("Message received:", content)
     getBoard(miro.as(session), board).then(async board =>
-        chat(board, text)
+        (await chat(board, text)).finish()
     )
     return res.send("ok")
 })
@@ -139,9 +140,15 @@ app.post("/chats", async (req, res) => {
     const { cookies: { session }, body: content, query: { board } } = req
     if (boardIsNull(board, res)) return
     console.log("Convo is", content)
+
+    /**
+     * @type {Pipes[]}
+     */
+    const pipes = []
     getBoard(miro.as(session), board).then(async board => {
         for (const text of content)
-            await chat(board, text)
+            pipes.push(await chat(board, text))
+        pipes.forEach(e => e.finish())
     })
     res.send("ok")
 })

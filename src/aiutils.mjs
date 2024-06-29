@@ -1,16 +1,17 @@
 import { Ollama } from 'ollama'
 import OpenAI from 'openai'
 import fs from 'fs'
-import { deleteCard} from './miroutils.mjs'
+import { deleteCard } from './miroutils.mjs'
 import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
-import { calendar } from './pipelines/calendar.mjs'
+import Calendar from './pipes/Calendar.mjs'
+import Pipes from './utils/Pipes.mjs'
 
 const DEBUG = true
 const log = DEBUG ? console.log : () => { }
 const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
 /**
- * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" | "createJSONDates" | "listOthers" | "conversationType"} IMPLEMENTATION
+ * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" | "createJSONDates" | "listOthers" | "conversationType" | "augmentCalendar"} IMPLEMENTATION
  */
 
 /**
@@ -30,6 +31,7 @@ export const imp = {
     checkCalendarDates: async msg => msg,
     createJSONDates: async msg => msg,
     listOthers: async msg => msg,
+    augmentCalendar: async msg => msg,
     conversationType: async msg => msg
 }
 
@@ -67,16 +69,15 @@ switch (IMPLEMENTATION) {
  */
 export async function chat(board, content) {
     log("DEBUG: At chat")
-    await imp.conversationType(content).then(
+    return imp.conversationType(content).then(
         async result => {
             log("Conversation type:", result)
             switch (result) {
                 case CONVOTYPES.CALENDAR:
-                    await calendar(board, content)
-                    break
-                case CONVOTYPES.TASKLIST:
-                    break
+                    return Calendar.calendar(board, content)
+                // case CONVOTYPES.TASKLIST:
             }
+            return new Pipes()
         })
 }
 
@@ -132,6 +133,6 @@ export async function generateImage(text) {
 function createOpenAIModel(openai, system) {
     return content => openai.chat.completions.create({
         model: "gpt-3.5-turbo",
-        messages: [{ role: "system", content: system + "\n#INPUT" }, { role: "user", content: content + "\n#OUTPUT" }]
+        messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }]
     }).then(data => data.choices[0]?.message?.content)
 }
