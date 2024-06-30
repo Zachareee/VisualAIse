@@ -19,7 +19,7 @@ class Calendar extends Pipes {
      * @param {Board} board 
      * @param {string} content 
      */
-    async calendar(board, content) {
+    async start(board, content) {
         this.output = true
         const calendar = (await findItem(board, CalendarFrameName, FrameChanges.TypeEnum.Freeform))
             || (await createCalendar(board))

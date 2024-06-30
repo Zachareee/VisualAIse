@@ -5,6 +5,7 @@ import { deleteCard } from './miroutils.mjs'
 import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import Calendar from './pipes/Calendar.mjs'
 import Pipes from './utils/Pipes.mjs'
+import Matrix from './pipes/Matrix.mjs'
 
 const DEBUG = true
 const log = DEBUG ? console.log : () => { }
@@ -37,7 +38,7 @@ export const imp = {
 
 const CONVOTYPES = {
     CALENDAR: "calendar",
-    TASKLIST: "tasklist",
+    MATRIX: "matrix",
     UNDETERMINED: "undetermined"
 }
 
@@ -70,15 +71,23 @@ switch (IMPLEMENTATION) {
 export async function chat(board, content) {
     log("DEBUG: At chat")
     return imp.conversationType(content).then(
+        /**
+         * 
+         * @param {keyof CONVOTYPES} result 
+         * @returns 
+         */
         async result => {
             log("Conversation type:", result)
-            switch (result) {
-                case CONVOTYPES.CALENDAR:
-                    return Calendar.calendar(board, content)
-                // case CONVOTYPES.TASKLIST:
-            }
-            return new Pipes()
+            return pipeMapping[result]?.start() || new Pipes()
         })
+}
+
+/**
+ * @type {Record<keyof CONVOTYPES, Pipes>}
+ */
+const pipeMapping = {
+    [CONVOTYPES.CALENDAR]: Calendar,
+    [CONVOTYPES.MATRIX]: Matrix
 }
 
 export function decide(miroapi, board, data, clusters, sortedCards) {
