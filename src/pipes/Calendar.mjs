@@ -8,10 +8,11 @@ import State from "../utils/State.mjs";
 
 const CalendarFrameName = "Calendar"
 const BOXSIZE = 300
+const originalState = {}
 /**
  * @type {State<Record<string, string>>}
  */
-const state = new State({})
+const state = new State(originalState)
 
 class Calendar extends Pipes {
     /**
@@ -32,6 +33,7 @@ class Calendar extends Pipes {
         if (this.output) {
             this.output = false
             console.log("Final Calendar is", await state.getValue())
+            state.setValue(originalState)
         }
     }
 }

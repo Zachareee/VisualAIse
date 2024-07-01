@@ -5,10 +5,11 @@ import { imp } from "../aiutils.mjs"
 import { findItem } from "../miroutils.mjs"
 import { FrameChanges } from "@mirohq/miro-api/dist/api.js"
 
+const originalConvoState = []
 /**
  * @type {State<string[]>}
  */
-const convo = new State([])
+const convo = new State(originalConvoState)
 
 /**
  * @type {State<string[][]>}
@@ -35,6 +36,7 @@ class Matrix extends Pipes {
         if (this.output) {
             this.output = false
             console.log("Final Matrix is", await convo.getValue())
+            convo.setValue(originalConvoState)
         }
     }
 }
