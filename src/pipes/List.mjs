@@ -17,7 +17,7 @@ const convo = new State(originalConvoState)
 const matrix = new State([])
 const MatrixFrameName = "Matrix"
 
-class Matrix extends Pipes {
+class List extends Pipes {
     /**
      * 
      * @param {Board} board 
@@ -48,7 +48,7 @@ class Matrix extends Pipes {
  * @param {FrameItem} frame 
  */
 async function decideMatrix(board, content, frame) {
-    const item = await imp.findMatrixItem(content)
+    const item = await imp.getCrux(content)
         .then(item => convo.getValue()
             .then(arr => [...arr, item]))
     console.log("Convo array is currently:", item)
@@ -67,4 +67,4 @@ async function decideMatrix(board, content, frame) {
  */
 async function createMatrix(board) { }
 
-export default new Matrix()
+export default new List()

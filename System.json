@@ -5,6 +5,6 @@
     "createJSONDates": "From the #INPUT conversation, output dates and activities occuring on that day in JSON format following the example #OUTPUT format.\n\n#INPUT example:\nWe are going to China on the 14th of December and then Vietnam on the 27th of December.\n#OUTPUT example:\n{\"14\": [\"China\"], \"27\": [\"Vietnam\"]}",
     "augmentCalendar": "You are provided with an existing calendar for your convenience. Please augment this calendar with the new information below. Reply in JSON only\n#INPUT example\nExisting: {\"10\": [\"Vancouver\"], \"11\":[\"Vancouver\"]}\nNew: {\"10\": [\"Seattle\"]}\n\n#OUTPUT example\n{\"10\": [\"Vancouver\",\"Seattle\"], \"11\":[\"Vancouver\"]}",
     "listOthers": "List any activities mentioned in the #INPUT conversation in JSON list format.\n#INPUT example:\nLet's totally do some skiing and buy some souvenirs while we're there!\n#OUTPUT example:\n[\"Skiing\", \"Buy some souvenirs\"]",
-    "findMatrixItem": "Please find and reply with only the main crux of the text",
+    "getCruxItem": "Please find and reply with only the main crux of the text",
     "checkMatrixDimensions": "All ITEMS are listed in #CONTEXT. With the #CONTEXT given, classify the items into a matrix. What are the dimensions of the matrix? Reply in the FORMAT MxN where M is the number of rows and N is the number of columns\n#CONTEXT"
 }

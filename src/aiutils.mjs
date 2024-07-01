@@ -5,7 +5,7 @@ import { deleteCard } from './miroutils.mjs'
 import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import Calendar from './pipes/Calendar.mjs'
 import Pipes from './utils/Pipes.mjs'
-import Matrix from './pipes/Matrix.mjs'
+import List from './pipes/List.mjs'
 
 const DEBUG = true
 const log = DEBUG ? console.log : () => { }
@@ -14,7 +14,7 @@ const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 /**
  * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
  * "createJSONDates" | "listOthers" | "conversationType" |
- * "augmentCalendar" | "findMatrixItem" | "checkMatrixDimensions"} IMPLEMENTATION
+ * "augmentCalendar" | "getCrux" | "checkMatrixDimensions"} IMPLEMENTATION
  */
 
 /**
@@ -35,7 +35,7 @@ export const imp = {
     createJSONDates: async msg => msg,
     listOthers: async msg => msg,
     augmentCalendar: async msg => msg,
-    findMatrixItem: async msg => msg,
+    getCrux: async msg => msg,
     checkMatrixDimensions: async msg => msg,
     conversationType: async msg => msg
 }
@@ -63,7 +63,7 @@ switch (IMPLEMENTATION) {
 
 const CONVOTYPES = {
     CALENDAR: "calendar",
-    MATRIX: "list",
+    LIST: "list",
     UNDETERMINED: "undetermined"
 }
 
@@ -91,7 +91,7 @@ export async function chat(board, content) {
  */
 const pipeMapping = {
     [CONVOTYPES.CALENDAR]: Calendar,
-    [CONVOTYPES.MATRIX]: Matrix
+    [CONVOTYPES.LIST]: List
 }
 
 export function decide(miroapi, board, data, clusters, sortedCards) {
