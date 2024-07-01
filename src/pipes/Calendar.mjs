@@ -31,7 +31,7 @@ class Calendar extends Pipes {
     async finish() {
         if (this.output) {
             this.output = false
-            console.log("Final state is", await state.getValue())
+            console.log("Final Calendar is", await state.getValue())
         }
     }
 }

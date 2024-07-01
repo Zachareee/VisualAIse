@@ -12,7 +12,9 @@ const log = DEBUG ? console.log : () => { }
 const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
 /**
- * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" | "createJSONDates" | "listOthers" | "conversationType" | "augmentCalendar"} IMPLEMENTATION
+ * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
+ * "createJSONDates" | "listOthers" | "conversationType" |
+ * "augmentCalendar" | "findMatrixItem" | "checkMatrixDimensions"} IMPLEMENTATION
  */
 
 /**
@@ -33,13 +35,9 @@ export const imp = {
     createJSONDates: async msg => msg,
     listOthers: async msg => msg,
     augmentCalendar: async msg => msg,
+    findMatrixItem: async msg => msg,
+    checkMatrixDimensions: async msg => msg,
     conversationType: async msg => msg
-}
-
-const CONVOTYPES = {
-    CALENDAR: "calendar",
-    MATRIX: "matrix",
-    UNDETERMINED: "undetermined"
 }
 
 switch (IMPLEMENTATION) {
@@ -63,6 +61,12 @@ switch (IMPLEMENTATION) {
         throw new Error("AI model not set")
 }
 
+const CONVOTYPES = {
+    CALENDAR: "calendar",
+    MATRIX: "list",
+    UNDETERMINED: "undetermined"
+}
+
 /**
  * 
  * @param {Board} board 
@@ -78,7 +82,7 @@ export async function chat(board, content) {
          */
         async result => {
             log("Conversation type:", result)
-            return pipeMapping[result]?.start() || new Pipes()
+            return pipeMapping[result]?.start(board, content) || new Pipes()
         })
 }
 

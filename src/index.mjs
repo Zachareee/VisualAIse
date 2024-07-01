@@ -17,7 +17,7 @@ import { findClusters } from "./clustering.mjs"
 import Pipes from "./utils/Pipes.mjs"
 
 // Variables
-const PORT = process.env.port || 3000
+const PORT = process.env.port || 3001
 
 const miro = new Miro({ storage: new Storage() })
 const app = express()
