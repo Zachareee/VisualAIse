@@ -9,5 +9,5 @@ export default class Pipes {
     async start(board, content) {
         return this
     }
-    finish() {}
+    async finish() {}
 }

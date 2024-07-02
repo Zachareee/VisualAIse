@@ -32,8 +32,10 @@ class Calendar extends Pipes {
     async finish() {
         if (this.output) {
             this.output = false
-            console.log("Final Calendar is", await state.getValue())
+            const value = `Final Calendar is ${await state.getValue()}`
             state.setValue(originalState)
+            console.log(value)
+            return value
         }
     }
 }

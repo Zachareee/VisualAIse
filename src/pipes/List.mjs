@@ -35,8 +35,10 @@ class List extends Pipes {
     async finish() {
         if (this.output) {
             this.output = false
-            console.log("Final Matrix is", await convo.getValue())
+            const value = `Final Matrix is\n${(await convo.getValue()).join("\n")}`
+            console.log(value)
             convo.setValue(originalConvoState)
+            return value
         }
     }
 }
@@ -48,15 +50,19 @@ class List extends Pipes {
  * @param {FrameItem} frame 
  */
 async function decideMatrix(board, content, frame) {
-    const item = await imp.getCrux(content)
+    const items = await imp.getCrux(content)
         .then(item => convo.getValue()
             .then(arr => [...arr, item]))
-    console.log("Convo array is currently:", item)
-    return convo.setValue(item)
+    console.log("Convo array is currently:", items)
+    convo.setValue(items)
+    imp.getMatrixDimensions(JSON.stringify(items)).then(
+        value => console.log("Dimensions for this are", value)
+    )
+    return
     await convo.setValue(
         await convo.getValue()
-            .then(arr => arr.push(item))
-            .then(arr => imp.checkMatrixDimensions(JSON.stringify(arr)))
+            .then(arr => arr.push(items))
+            .then(arr => imp.getMatrixDimensions(JSON.stringify(arr)))
             .then(console.log)
     )
 }

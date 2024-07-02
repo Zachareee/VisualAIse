@@ -17,7 +17,7 @@ import { findClusters } from "./clustering.mjs"
 import Pipes from "./utils/Pipes.mjs"
 
 // Variables
-const PORT = process.env.port || 3001
+const PORT = process.env.port || 3000
 
 const miro = new Miro({ storage: new Storage() })
 const app = express()
@@ -148,9 +148,9 @@ app.post("/chats", async (req, res) => {
     getBoard(miro.as(session), board).then(async board => {
         for (const text of content)
             pipes.push(await chat(board, text))
-        pipes.forEach(e => e.finish())
+        res.send((await Promise.all(pipes.map(e => e.finish()))).filter(value => value))
     })
-    res.send("ok")
+
 })
 
 app.get("/clusters", async (req, res) => {

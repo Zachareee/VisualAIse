@@ -14,7 +14,7 @@ const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 /**
  * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
  * "createJSONDates" | "listOthers" | "conversationType" |
- * "augmentCalendar" | "getCrux" | "checkMatrixDimensions"} IMPLEMENTATION
+ * "augmentCalendar" | "getCrux" | "getMatrixDimensions"} IMPLEMENTATION
  */
 
 /**
@@ -36,7 +36,7 @@ export const imp = {
     listOthers: async msg => msg,
     augmentCalendar: async msg => msg,
     getCrux: async msg => msg,
-    checkMatrixDimensions: async msg => msg,
+    getMatrixDimensions: async msg => msg,
     conversationType: async msg => msg
 }
 
