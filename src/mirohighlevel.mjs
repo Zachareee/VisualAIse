@@ -1,6 +1,6 @@
 import { Board, MiroApi } from "@mirohq/miro-api";
 import { generateImage } from "./aiutils.mjs";
-import { defaultRadius } from "./clustering.mjs";
+// import { defaultRadius } from "./clustering.mjs";
 import { createBox, createCard, createFrame, createImage, filterItems, GONES, getBoard, strLike, updateCard } from "./miroutils.mjs";
 
 const VSPACE = 60 + 20, HSPACE = 320 + 20

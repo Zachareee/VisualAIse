@@ -1,4 +1,4 @@
-import { Ollama } from 'ollama'
+// import { Ollama } from 'ollama'
 import OpenAI from 'openai'
 import fs from 'fs'
 import { deleteCard } from './miroutils.mjs'

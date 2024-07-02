@@ -12,8 +12,8 @@ import {
 } from "./miroutils.mjs"
 import { sortCards } from "./mirohighlevel.mjs"
 import { chat, decide } from "./aiutils.mjs"
-import MiroBrowser from "./puppet.mjs"
-import { findClusters } from "./clustering.mjs"
+// import MiroBrowser from "./puppet.mjs"
+// import { findClusters } from "./clustering.mjs"
 import Pipes from "./utils/Pipes.mjs"
 
 // Variables
