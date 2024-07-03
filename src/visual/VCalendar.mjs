@@ -12,28 +12,15 @@ class VCalendar {
      * @param {Record<string, string>} array 
      */
     async prepareCalendar(board, array) {
-        const calendarframe = (await findItem(board, CalendarFrameName, "frame"))
-            || (await createCalendar(board))
         const [requiredMin, requiredMax] = getRange(Object.keys(array).map(num => Number(num)))
         if (!requiredMin) return
 
-        const items = await getUnmodifiedItemsFromFrame(calendarframe)
-        if (!items.length) {
-            console.log("items is empty, initialising calendar...")
-            for (let i = 0; i < requiredMax - requiredMin + 1; i++) {
-                console.log("Currently i is at", i + requiredMin)
-                await createBox(board, {
-                    size: BOXSIZE,
-                    content: `${i + requiredMin}`,
-                    position: {
-                        x: BOXSIZE * (i + 0.5),
-                        y: BOXSIZE / 2
-                    },
-                    parent: calendarframe
-                })
-            }
-            return
+        const calendarframe = await findItem(board, CalendarFrameName, "frame")
+        if (!calendarframe) {
+            return createCalendar(board, requiredMin, requiredMax)
         }
+
+        const items = await getUnmodifiedItemsFromFrame(calendarframe)
         /**
          * 
          * @param {ShapeItem} item 
@@ -47,7 +34,7 @@ class VCalendar {
 
         if (min) {
             if (requiredMin < min) { }
-            if (requiredMax < max) { }
+            if (requiredMax > max) { }
         } else {
 
         }
@@ -104,20 +91,39 @@ async function createDates(board, frame, required, closestItem) {
 
 /**
  * @param {Board} board
+ * @param {number} min 
+ * @param {number} max 
  */
-async function createCalendar(board) {
+async function createCalendar(board, min, max) {
     // const days = 31
     // const width = 7 * BOXSIZE, height = Math.ceil(days / 7) * BOXSIZE
-    const width = BOXSIZE, height = BOXSIZE
+    const count = max - min + 1
+    const width = count * BOXSIZE, height = BOXSIZE
     // const x = width / 2 - 0.5 * BOXSIZE, y = height / 2 - 0.5 * BOXSIZE
 
     // calendar
-    return createFrame(board, {
+    const frame = await createFrame(board, {
         title: CalendarFrameName,
         bgColor: "#ffcee0",
         position: { x: 0, y: 0 },
         geometry: { height, width }
     })
+
+    console.log("items is empty, initialising calendar...")
+    for (let i = 0; i < count; i++) {
+        console.log("Currently i is at", i + min)
+        createBox(board, {
+            size: BOXSIZE,
+            content: `${i + min}`,
+            position: {
+                x: BOXSIZE * (i + 0.5),
+                y: BOXSIZE / 2
+            },
+            parent: frame
+        })
+    }
+
+    return frame
 
     // for (let i = 0; i < days; i++)
     //     createBox(board, {

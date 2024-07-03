@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.mjs",
   "scripts": {
-    "start": "dotenvx run -f .env.dev -- nodemon --trace-deprecation src/index.mjs",
+    "start": "dotenvx run -f .env.dev -- nodemon src/index.mjs",
     "dev": "dotenvx run -f .env.dev -- node src/clustering.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
