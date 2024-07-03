@@ -53,18 +53,6 @@ app.get("/auth", async (req, res) => {
     return res.redirect("/")
 })
 
-app.get("/ss", async (req, res) => {
-    const { board } = req.query
-    try {
-        if (!board) throw new Error("boardId missing!")
-        await MiroBrowser.screenshot(board)
-        res.send("Saved")
-    } catch (err) {
-        console.log(err)
-        res.status(400).send(err.toString())
-    }
-})
-
 // mounted after "/" to avoid infinite redirects
 // after "/auth" to avoid intercepting auth code
 // after "/ss" which shouldn't need user creds
@@ -91,37 +79,6 @@ app.get("/stt", async (req, res) => {
     return res.sendFile(getStaticFile("stt.html"))
 })
 
-app.get("/allItems", async (req, res) => {
-    const { cookies: { session }, query: { board } } = req
-    if (boardIsNull(board, res)) return
-
-    return res.json(await getItems(miro.as(session), board))
-})
-
-app.post("/card", async (req, res) => {
-    const { cookies: { session }, query: { board }, body } = req
-    if (boardIsNull(board, res)) return
-
-    createCard(miro.as(session), board, body)
-    return res.send("ok")
-})
-
-app.patch("/card", async (req, res) => {
-    const { cookies: { session }, query: { board }, body } = req
-    if (boardIsNull(board, res)) return
-
-    updateCard(miro.as(session), board, body)
-    return res.send("ok")
-})
-
-app.delete("/card", async (req, res) => {
-    const { cookies: { session }, query: { board, cardTitle } } = req
-    if (boardIsNull(board, res)) return
-
-    deleteCard(miro.as(session), board, cardTitle)
-    return res.send("ok")
-})
-
 app.post("/chat", async (req, res) => {
     const { cookies: { session }, body: { content }, query: { board } } = req
     if (boardIsNull(board, res)) return
@@ -134,9 +91,6 @@ app.post("/chat", async (req, res) => {
 })
 
 app.post("/chats", async (req, res) => {
-    /**
-     * @type {{body: string[]}}
-     */
     const { cookies: { session }, body: content, query: { board } } = req
     if (boardIsNull(board, res)) return
     console.log("Convo is", content)
@@ -153,12 +107,6 @@ app.post("/chats", async (req, res) => {
 
 })
 
-app.get("/clusters", async (req, res) => {
-    const { cookies: { session }, query: { board, radius, minPoints } } = req
-
-    res.send(findClusters(await getItems(miro.as(session), board), radius, minPoints))
-})
-
 app.post("/decide", async (req, res) => {
     const { query: { board }, body, cookies: { session } } = req
     if (boardIsNull(board, res)) return
@@ -171,8 +119,4 @@ app.post("/decide", async (req, res) => {
 
 app.listen(PORT, () => {
     console.log("Listening on port", PORT)
-})
-
-process.on("SIGTERM", async () => {
-    await MiroBrowser.close()
 })

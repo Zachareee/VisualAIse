@@ -9,5 +9,8 @@ export default class Pipes {
     async start(board, content) {
         return this
     }
+    /**
+     * @returns {Promise<any>}
+     */
     async finish() {}
 }

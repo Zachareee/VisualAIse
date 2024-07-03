@@ -1,18 +1,9 @@
 import { Board, CardItem, FrameItem, MiroApi, ShapeItem, StickyNoteItem } from "@mirohq/miro-api"
-import { CardCreateRequest, FrameChanges, FrameStyle, GeometryNoRotation, PositionChange, StickyNoteCreateRequest } from "@mirohq/miro-api/dist/api.js"
+import { CardCreateRequest, FrameChanges, FrameStyle, GeometryNoRotation, Parent, PositionChange, StickyNoteCreateRequest } from "@mirohq/miro-api/dist/api.js"
 import _ from "lodash"
 
 /**
- * @typedef {{card: CardItem, sticky_note: StickyNoteItem, shape: ShapeItem, [FrameChanges.TypeEnum.Freeform]: FrameItem}} Filters
- */
-
-/**
- * @typedef {{
- * card: FilterInfo<CardItem, "title">,
- * sticky_note: FilterInfo<StickyNoteItem, "content">,
- * shape: FilterInfo<ShapeItem, "content">,
- * [FrameChanges.TypeEnum.Freeform]: FilterInfo<FrameItem, "title">
- * }} Filters
+ * @typedef {{card: CardItem, sticky_note: StickyNoteItem, shape: ShapeItem, frame: FrameItem}} Filters
  */
 
 export async function getBoards(miroapi) {
@@ -27,27 +18,6 @@ export async function getBoards(miroapi) {
  */
 export async function getBoard(miroapi, boardId) {
     return miroapi.getBoard(boardId)
-}
-
-/** @type {import("@mirohq/miro-api/dist/highlevel/Item").WidgetItem[]}*/
-let activeBoard
-
-/**
- * 
- * @param {Board} board 
- * @returns 
- */
-export async function getUnmodifiedItems(board) {
-    const newBoard = await unwrapGenerator(board.getAllItems())
-
-    /** @type {import("@mirohq/miro-api/dist/highlevel/Item").WidgetItem[]} */
-    const retainedItems = []
-    for (const item of activeBoard) {
-        if (boardContainsItem(newBoard, item)) retainedItems.push(item)
-    }
-    activeBoard = retainedItems
-
-    return retainedItems
 }
 
 /**
@@ -69,7 +39,7 @@ export async function createImage(miroapi, boardId, url) {
 
 /**
  * @param {Board} board
- * @param {{size: number, content: string, position: PositionChange, parent: string}} param2 
+ * @param {{size: number, content: string, position: PositionChange, parent: Parent}} param2 
  */
 export async function createBox(board, { size, content, position, parent }) {
     return board.createShapeItem({
@@ -92,7 +62,7 @@ export async function createBox(board, { size, content, position, parent }) {
 /**
  * 
  * @param {Board} board 
- * @param {{string, bgColor: FrameStyle["fillColor"], geometry: GeometryNoRotation, position: PositionChange}} param1 
+ * @param {{title: string, bgColor: FrameStyle["fillColor"], geometry: GeometryNoRotation, position: PositionChange}} param1 
  * @returns 
  */
 export async function createFrame(board, { title, bgColor: fillColor, geometry, position }) {
@@ -159,12 +129,13 @@ export async function GONES(board, searchKey, type) {
 
 /**
  * @template {keyof Filters} T
- * @param {Board} board 
- * @param {T} widgetType 
+ * @param {Board | FrameItem} board 
+ * @param {T} type 
  * @returns {Promise<(Filters[T])[]>}
  */
-export async function filterItems(board, widgetType) {
-    return (await unwrapGenerator(board.getAllItems())).filter(({ type }) => type === widgetType)
+export async function filterItems(board, type) {
+    const filtered = await unwrapGenerator(board.getAllItems({ type }))
+    return filtered
 }
 
 /**
@@ -187,7 +158,7 @@ export function strLike(regex, test) {
  */
 export async function findItem(board, searchKey, type) {
     const textLocation = findText(type)
-    return (await filterItems(board, type)).find(card => strLike(searchKey, card.data[textLocation]))
+    return (await filterItems(board, type)).find(item => strLike(searchKey, item.data[textLocation]))
 }
 
 /**
@@ -196,7 +167,7 @@ export async function findItem(board, searchKey, type) {
  */
 export function findText(type) {
     switch (type) {
-        case FrameChanges.TypeEnum.Freeform:
+        case "frame":
         case "card":
             return "title"
         case "sticky_note":

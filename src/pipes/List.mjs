@@ -5,16 +5,16 @@ import { imp } from "../aiutils.mjs"
 import { findItem } from "../miroutils.mjs"
 import { FrameChanges } from "@mirohq/miro-api/dist/api.js"
 
-const originalConvoState = []
 /**
- * @type {State<string[]>}
+ * @type {string[]}
  */
+const originalConvoState = []
 const convo = new State(originalConvoState)
 
-/**
- * @type {State<string[][]>}
- */
-const matrix = new State([])
+// /**
+//  * @type {State<string[][]>}
+//  */
+// const matrix = new State([])
 const MatrixFrameName = "Matrix"
 
 class List extends Pipes {
@@ -25,7 +25,7 @@ class List extends Pipes {
      */
     async start(board, content) {
         this.output = true
-        const matrix = (await findItem(board, MatrixFrameName, FrameChanges.TypeEnum.Freeform))
+        const matrix = (await findItem(board, MatrixFrameName, "frame"))
             || (await createMatrix(board))
 
         await decideMatrix(board, content, matrix)
