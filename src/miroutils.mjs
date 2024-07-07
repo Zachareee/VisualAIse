@@ -92,13 +92,14 @@ export async function createCard(miroapi, boardId, data) {
 /**
  * 
  * @param {Board} board
- * @param {{content: string, position: PositionChange}} param1 
+ * @param {{content: string, position: PositionChange, parent?: Parent}} param1 
  * @returns {Promise<StickyNoteItem>}
  */
-export async function createStickyNote(board, { content, position }) {
+export async function createStickyNote(board, { content, position, parent }) {
     return board.createStickyNoteItem({
         data: { content },
-        position
+        position,
+        parent
     })
 }
 

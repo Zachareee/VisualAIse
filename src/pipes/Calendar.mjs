@@ -51,7 +51,7 @@ async function decideCalendar(board, content) {
             return imp.createJSONDates(content)
                 .then(JSON.parse).then(
                     /**
-                     * @param {Record<string, string>} JSONarr
+                     * @param {Record<string, string[]>} JSONarr
                      */
                     JSONarr => {
                         console.log("JSON format of dates:", JSONarr)
@@ -64,7 +64,7 @@ async function decideCalendar(board, content) {
 /**
  * 
  * @param {Board} board 
- * @param {Record<string, string>} array 
+ * @param {Record<string, string[]>} array 
  */
 async function addDatesToBoard(board, array) {
     await VCalendar.prepareCalendar(board, array)

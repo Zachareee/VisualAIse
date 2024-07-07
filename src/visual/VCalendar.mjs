@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
-import { createBox, createFrame, filterItems, findItem } from "../miroutils.mjs"
+import { createBox, createFrame, createStickyNote, filterItems, findItem } from "../miroutils.mjs"
 
 const CalendarFrameName = "Calendar"
 const BOXSIZE = 300
@@ -9,10 +9,41 @@ class VCalendar {
     /**
      * 
      * @param {Board} board 
-     * @param {Record<string, string>} array 
+     * @param {Record<string, string[]>} array 
      */
     async prepareCalendar(board, array) {
-        const [requiredMin, requiredMax] = getRange(Object.keys(array).map(num => Number(num)))
+        const calendarframe = (await findItem(board, CalendarFrameName, "frame")) || (await createCalendar(board))
+
+        const items = await getUnmodifiedItemsFromFrame(calendarframe)
+        for (const [date, arr] of Object.entries(array)) {
+            const idx = idxInSortedArray(items.map(item => Number(item.data?.content)), Number(date))
+            await extendFrame(calendarframe).then(
+                () => rightShiftItems(items, idx)
+            ).then(
+                () => rightShiftStickys(calendarframe)
+            ).then(
+                () => createBox(board, {
+                    size: BOXSIZE,
+                    content: date,
+                    position: {
+                        x: BOXSIZE * (idx + 0.5),
+                        y: BOXSIZE / 2
+                    },
+                    parent: calendarframe
+                })
+            ).then(
+                () => createStickyNote(board, {
+                    content: arr.join("\n"),
+                    position: {
+                        x: BOXSIZE * (idx + 0.5),
+                        y: BOXSIZE / 2
+                    },
+                    parent: calendarframe
+                })
+            )
+        }
+        return calendarframe
+        /*const [requiredMin, requiredMax] = getRange(Object.keys(array).map(num => Number(num)))
         if (!requiredMin) return
 
         const calendarframe = await findItem(board, CalendarFrameName, "frame")
@@ -30,8 +61,50 @@ class VCalendar {
             if (requiredMax > max) {
                 createDatesExtendFrame(board, calendarframe, max + 1, requiredMax - max, requiredMax - max)
             }
-        }
+        }*/
     }
+}
+
+/**
+ * 
+ * Compares the "compare" value against all numbers in the array
+ * @param {number[]} arr A sorted array
+ * @param {number} compare A value to compare against
+ * @returns {number} The index it would take as if it was part of the sorted array
+ */
+function idxInSortedArray(arr, compare) {
+    const idx = arr.findIndex(value => compare < value)
+    return idx === -1 ? arr.length : idx
+}
+
+/**
+ * 
+ * @param {ShapeItem[]} items Array of items
+ * @param {number} [startingFrom=0] The starting index to shift items
+ * @param {number} [times=1] How many times to shift
+ */
+async function rightShiftItems(items, startingFrom = 0, times = 1) {
+    return Promise.all(items.filter((_, idx) => idx >= startingFrom).map(item => {
+        const x = item.position?.x ?? 0
+        return item.update({ position: { x: x + times * BOXSIZE } })
+    }))
+}
+
+/**
+ * @param {FrameItem} frame 
+ */
+async function rightShiftStickys(frame, times = 1) {
+    return Promise.all((await filterItems(frame, "sticky_note"))
+        .map(note => note.update({ position: { x: (note.position?.x ?? 0) + times * BOXSIZE } })))
+}
+
+/**
+ * 
+ * @param {FrameItem} frame 
+ * @param {number} [times=1]
+ */
+async function extendFrame(frame, times = 1) {
+    return frame.update({ geometry: { width: (frame.geometry?.width ?? 0) + BOXSIZE } })
 }
 
 /**
@@ -106,10 +179,7 @@ async function optionalExtendFrame(frame, count, noshift) {
         async () => {
             if (!noshift) {
                 const items = await getUnmodifiedItemsFromFrame(frame)
-                return Promise.all(items.map(item => {
-                    const x = item.position?.x ?? 0
-                    return item.update({ position: { x: x + count * BOXSIZE } })
-                }))
+                return rightShiftItems(items, count)
             }
         }
     )
@@ -117,10 +187,10 @@ async function optionalExtendFrame(frame, count, noshift) {
 
 /**
  * @param {Board} board
- * @param {number} min 
- * @param {number} max 
+ * @param {number} [min=0]
+ * @param {number} [max=0]
  */
-async function createCalendar(board, min, max) {
+async function createCalendar(board, min = 0, max = 0) {
     // const days = 31
     // const width = 7 * BOXSIZE, height = Math.ceil(days / 7) * BOXSIZE
     const count = max - min + 1
@@ -136,7 +206,7 @@ async function createCalendar(board, min, max) {
     })
 
     console.log("items is empty, initialising calendar...")
-    createDatesNoExtendFrame(board, frame, min, max - min + 1, 0)
+    // createDatesNoExtendFrame(board, frame, min, max - min + 1, 0)
 
     return frame
 
