@@ -18,28 +18,27 @@ class VCalendar {
         for (const [date, arr] of Object.entries(array)) {
             const idx = idxInSortedArray(items.map(item => Number(item.data?.content)), Number(date))
             await extendFrame(calendarframe).then(
-                () => rightShiftItems(items, idx)
+                () => Promise.all([rightShiftItems(items, idx), rightShiftStickys(calendarframe, idx)])
             ).then(
-                () => rightShiftStickys(calendarframe)
-            ).then(
-                () => createBox(board, {
-                    size: BOXSIZE,
-                    content: date,
-                    position: {
-                        x: BOXSIZE * (idx + 0.5),
-                        y: BOXSIZE / 2
-                    },
-                    parent: calendarframe
-                })
-            ).then(
-                () => createStickyNote(board, {
-                    content: arr.join("\n"),
-                    position: {
-                        x: BOXSIZE * (idx + 0.5),
-                        y: BOXSIZE / 2
-                    },
-                    parent: calendarframe
-                })
+                () => Promise.all([
+                    createBox(board, {
+                        size: BOXSIZE,
+                        content: date,
+                        position: {
+                            x: BOXSIZE * (idx + 0.5),
+                            y: BOXSIZE / 2
+                        },
+                        parent: calendarframe
+                    }),
+                    createStickyNote(board, {
+                        content: arr.join("\n"),
+                        position: {
+                            x: BOXSIZE * (idx + 0.5),
+                            y: BOXSIZE / 2
+                        },
+                        parent: calendarframe
+                    })
+                ])
             )
         }
         return calendarframe
@@ -83,19 +82,23 @@ function idxInSortedArray(arr, compare) {
  * @param {number} [startingFrom=0] The starting index to shift items
  * @param {number} [times=1] How many times to shift
  */
-async function rightShiftItems(items, startingFrom = 0, times = 1) {
-    return Promise.all(items.filter((_, idx) => idx >= startingFrom).map(item => {
-        const x = item.position?.x ?? 0
-        return item.update({ position: { x: x + times * BOXSIZE } })
-    }))
+function rightShiftItems(items, startingFrom = 0, times = 1) {
+    return items.filter((_, idx) => idx >= startingFrom).map(item =>
+        item.update({ position: { x: (item.position?.x ?? 0) + times * BOXSIZE } })
+    )
 }
 
 /**
  * @param {FrameItem} frame 
+ * @param {number} [startingFrom=0] The starting index to shift items
+ * @param {number} [times=1] How many times to shift
  */
-async function rightShiftStickys(frame, times = 1) {
+async function rightShiftStickys(frame, startingFrom = 0, times = 1) {
     return Promise.all((await filterItems(frame, "sticky_note"))
-        .map(note => note.update({ position: { x: (note.position?.x ?? 0) + times * BOXSIZE } })))
+        .sort((a, b) => (a.position?.x ?? 0) - (b.position?.x ?? 0))
+        .filter((_, idx) => idx >= startingFrom)
+        .map(note => note.update({ position: { x: (note.position?.x ?? 0) + times * BOXSIZE } }))
+    )
 }
 
 /**
@@ -104,7 +107,8 @@ async function rightShiftStickys(frame, times = 1) {
  * @param {number} [times=1]
  */
 async function extendFrame(frame, times = 1) {
-    return frame.update({ geometry: { width: (frame.geometry?.width ?? 0) + BOXSIZE } })
+    const width = frame.geometry?.width ?? 0
+    return frame.update({ geometry: { width: (width - width % BOXSIZE) + times * BOXSIZE } })
 }
 
 /**
@@ -202,7 +206,7 @@ async function createCalendar(board, min = 0, max = 0) {
         title: CalendarFrameName,
         bgColor: "#ffcee0",
         position: { x: 0, y: 0 },
-        geometry: { height, width }
+        geometry: { height, width: 100 }
     })
 
     console.log("items is empty, initialising calendar...")
