@@ -21,22 +21,15 @@ class VCalendar {
         }
 
         const items = await getUnmodifiedItemsFromFrame(calendarframe)
-        /**
-         * 
-         * @param {ShapeItem} item 
-         * @returns 
-         */
-        function getDate(item) {
-            return Number(item.data?.content)
-        }
-        items.sort((a, b) => getDate(a) - getDate(b))
-        const [min, max] = [getDate(items[0]), getDate(items[items.length - 1])]
+        const [min, max] = getRange(items.map(item => Number(item.data?.content)))
 
         if (min) {
-            if (requiredMin < min) { }
-            if (requiredMax > max) { }
-        } else {
-
+            if (requiredMin < min) {
+                createDatesExtendFrame(board, calendarframe, requiredMin, min - requiredMin, 0)
+            }
+            if (requiredMax > max) {
+                createDatesExtendFrame(board, calendarframe, max + 1, requiredMax - max, requiredMax - max)
+            }
         }
     }
 }
@@ -69,24 +62,57 @@ async function getUnmodifiedItemsFromFrame(frame) {
  * 
  * @param {Board} board 
  * @param {FrameItem} frame 
- * @param {number} required 
- * @param {ShapeItem} closestItem 
+ * @param {number} from 
+ * @param {number} count 
+ * @param {number} start
  */
-async function createDates(board, frame, required, closestItem) {
-    const date = Number(closestItem.data?.content)
-    if (required < date) {
-        for (let i = 0; i < date - required; i++) {
-            createBox(board, {
-                size: BOXSIZE,
-                content: `${i}`,
-                position: {
-                    x: BOXSIZE * (i + 0.5),
-                    y: BOXSIZE / 2
-                },
-                parent: frame
-            })
-        }
+async function createDatesExtendFrame(board, frame, from, count, start) {
+    await optionalExtendFrame(frame, count, Boolean(start))
+    return createDatesNoExtendFrame(board, frame, from, count, start)
+}
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {FrameItem} frame 
+ * @param {number} from 
+ * @param {number} count 
+ * @param {number} start
+ */
+async function createDatesNoExtendFrame(board, frame, from, count, start) {
+    for (let i = 0; i < count; i++) {
+        const date = i + from
+        console.log("Currently i is at", date)
+        createBox(board, {
+            size: BOXSIZE,
+            content: `${date}`,
+            position: {
+                x: BOXSIZE * (i + start + 0.5),
+                y: BOXSIZE / 2
+            },
+            parent: frame
+        })
     }
+}
+
+/**
+ * 
+ * @param {FrameItem} frame 
+ * @param {number} count 
+ * @param {boolean} noshift 
+ */
+async function optionalExtendFrame(frame, count, noshift) {
+    return frame.update({ geometry: { width: (frame.geometry?.width ?? 0) + count * BOXSIZE } }).then(
+        async () => {
+            if (!noshift) {
+                const items = await getUnmodifiedItemsFromFrame(frame)
+                return Promise.all(items.map(item => {
+                    const x = item.position?.x ?? 0
+                    return item.update({ position: { x: x + count * BOXSIZE } })
+                }))
+            }
+        }
+    )
 }
 
 /**
@@ -110,18 +136,7 @@ async function createCalendar(board, min, max) {
     })
 
     console.log("items is empty, initialising calendar...")
-    for (let i = 0; i < count; i++) {
-        console.log("Currently i is at", i + min)
-        createBox(board, {
-            size: BOXSIZE,
-            content: `${i + min}`,
-            position: {
-                x: BOXSIZE * (i + 0.5),
-                y: BOXSIZE / 2
-            },
-            parent: frame
-        })
-    }
+    createDatesNoExtendFrame(board, frame, min, max - min + 1, 0)
 
     return frame
 
