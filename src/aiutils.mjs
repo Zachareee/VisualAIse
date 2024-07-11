@@ -147,5 +147,5 @@ function createOpenAIModel(openai, system) {
     return content => openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }]
-    }).then(data => data.choices[0]?.message?.content)
+    }).then(data => data.choices[0]?.message?.content ?? 0)
 }

@@ -15,7 +15,6 @@ const convo = new State(originalConvoState)
 //  * @type {State<string[][]>}
 //  */
 // const matrix = new State([])
-const MatrixFrameName = "Matrix"
 
 class List extends Pipes {
     /**
@@ -25,10 +24,8 @@ class List extends Pipes {
      */
     async start(board, content) {
         this.output = true
-        const matrix = (await findItem(board, MatrixFrameName, "frame"))
-            || (await createMatrix(board))
 
-        await decideMatrix(board, content, matrix)
+        await decideMatrix(board, content)
         return this
     }
 
@@ -47,9 +44,8 @@ class List extends Pipes {
  * 
  * @param {Board} board 
  * @param {string} content 
- * @param {FrameItem} frame 
  */
-async function decideMatrix(board, content, frame) {
+async function decideMatrix(board, content) {
     const items = await imp.getCrux(content)
         .then(item => convo.getValue()
             .then(arr => [...arr, item]))
@@ -59,18 +55,12 @@ async function decideMatrix(board, content, frame) {
         value => console.log("Dimensions for this are", value)
     )
     return
-    await convo.setValue(
-        await convo.getValue()
-            .then(arr => arr.push(items))
-            .then(arr => imp.getMatrixDimensions(JSON.stringify(arr)))
-            .then(console.log)
-    )
+    // await convo.setValue(
+    //     await convo.getValue()
+    //         .then(arr => arr.push(items))
+    //         .then(arr => imp.getMatrixDimensions(JSON.stringify(arr)))
+    //         .then(console.log)
+    // )
 }
-
-/**
- * 
- * @param {Board} board 
- */
-async function createMatrix(board) { }
 
 export default new List()
