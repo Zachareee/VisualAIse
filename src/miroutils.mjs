@@ -80,13 +80,27 @@ export async function createFrame(board, { title, bgColor: fillColor, geometry, 
 
 /**
  * 
- * @param {MiroApi} miroapi 
- * @param {string} boardId 
- * @param {CardCreateRequest} data 
+ * @param {Board} board
+ * @param {Partial<Record<"description"|"title", string>>
+ * & Partial<Record<"height"|"width", number>
+ * & PositionChange
+ * & { parent: Parent }>
+ * } param1
  * @returns {Promise<CardItem>}
  */
-export async function createCard(miroapi, boardId, data) {
-    return getBoard(miroapi, boardId).then(board => board.createCardItem(data)).catch(console.warn)
+export async function createCard(board, { description, title, height, width, x, y, parent }) {
+    return board.createCardItem({
+        data: {
+            title, description
+        },
+        position: {
+            x, y
+        },
+        geometry: {
+            height, width
+        },
+        parent
+    })
 }
 
 /**

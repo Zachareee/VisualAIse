@@ -1,6 +1,7 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
 import { createBox, createFrame, createStickyNote, filterItems, findItem } from "../miroutils.mjs"
+import { calendarPosition } from "./Positions.mjs"
 
 const CalendarFrameName = "Calendar"
 const BOXSIZE = 300
@@ -15,30 +16,12 @@ class VCalendar {
         const calendarframe = (await findItem(board, CalendarFrameName, "frame")) || (await createCalendar(board))
 
         const items = await getUnmodifiedItemsFromFrame(calendarframe)
-        for (const [date, arr] of Object.entries(array)) {
+        for (const [date, topic] of Object.entries(array)) {
             const idx = idxInSortedArray(items.map(item => Number(item.data?.content)), Number(date))
             await extendFrame(calendarframe).then(
                 () => Promise.all([rightShiftItems(items, idx), rightShiftStickys(calendarframe, idx)])
             ).then(
-                () => Promise.all([
-                    createBox(board, {
-                        size: BOXSIZE,
-                        content: date,
-                        position: {
-                            x: BOXSIZE * (idx + 0.5),
-                            y: BOXSIZE / 2
-                        },
-                        parent: calendarframe
-                    }),
-                    createStickyNote(board, {
-                        content: arr.join("\n"),
-                        position: {
-                            x: BOXSIZE * (idx + 0.5),
-                            y: BOXSIZE / 2
-                        },
-                        parent: calendarframe
-                    })
-                ])
+                () => addDate(board, calendarframe, { date, topic, idx })
             )
         }
         return calendarframe
@@ -62,6 +45,35 @@ class VCalendar {
             }
         }*/
     }
+}
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {FrameItem} parent 
+ * @param {{date: string, topic: string[], idx: number}} param2 
+ * @returns 
+ */
+async function addDate(board, parent, { date, topic, idx }) {
+    return Promise.all([
+        createBox(board, {
+            size: BOXSIZE,
+            content: date,
+            position: {
+                x: BOXSIZE * (idx + 0.5),
+                y: BOXSIZE / 2
+            },
+            parent
+        }),
+        createStickyNote(board, {
+            content: topic.join("\n"),
+            position: {
+                x: BOXSIZE * (idx + 0.5),
+                y: BOXSIZE / 2
+            },
+            parent
+        })
+    ])
 }
 
 /**
@@ -117,76 +129,12 @@ async function extendFrame(frame, times = 1) {
 
 /**
  * 
- * @param {number[]} numarr 
- * @returns {Range}
- */
-function getRange(numarr) {
-    numarr.sort((a, b) => a - b)
-    return [_.first(numarr) ?? 0, _.last(numarr) ?? 0]
-}
-
-/**
- * 
  * @param {FrameItem} frame 
  * @returns 
  */
 async function getUnmodifiedItemsFromFrame(frame) {
     const newBoard = await filterItems(frame, "shape")
     return newBoard.filter(item => item.position?.y === BOXSIZE / 2)
-}
-
-/**
- * 
- * @param {Board} board 
- * @param {FrameItem} frame 
- * @param {number} from 
- * @param {number} count 
- * @param {number} start
- */
-async function createDatesExtendFrame(board, frame, from, count, start) {
-    await optionalExtendFrame(frame, count, Boolean(start))
-    return createDatesNoExtendFrame(board, frame, from, count, start)
-}
-
-/**
- * 
- * @param {Board} board 
- * @param {FrameItem} frame 
- * @param {number} from 
- * @param {number} count 
- * @param {number} start
- */
-async function createDatesNoExtendFrame(board, frame, from, count, start) {
-    for (let i = 0; i < count; i++) {
-        const date = i + from
-        console.log("Currently i is at", date)
-        createBox(board, {
-            size: BOXSIZE,
-            content: `${date}`,
-            position: {
-                x: BOXSIZE * (i + start + 0.5),
-                y: BOXSIZE / 2
-            },
-            parent: frame
-        })
-    }
-}
-
-/**
- * 
- * @param {FrameItem} frame 
- * @param {number} count 
- * @param {boolean} noshift 
- */
-async function optionalExtendFrame(frame, count, noshift) {
-    return frame.update({ geometry: { width: (frame.geometry?.width ?? 0) + count * BOXSIZE } }).then(
-        async () => {
-            if (!noshift) {
-                const items = await getUnmodifiedItemsFromFrame(frame)
-                return rightShiftItems(items, count)
-            }
-        }
-    )
 }
 
 /**
@@ -205,12 +153,11 @@ async function createCalendar(board, min = 0, max = 0) {
     const frame = await createFrame(board, {
         title: CalendarFrameName,
         bgColor: "#ffcee0",
-        position: { x: 0, y: 0 },
+        position: calendarPosition,
         geometry: { height, width: 100 }
     })
 
     console.log("items is empty, initialising calendar...")
-    // createDatesNoExtendFrame(board, frame, min, max - min + 1, 0)
 
     return frame
 

@@ -4,6 +4,7 @@ import Pipes from "../utils/Pipes.mjs"
 import { imp } from "../aiutils.mjs"
 import { findItem } from "../miroutils.mjs"
 import { FrameChanges } from "@mirohq/miro-api/dist/api.js"
+import VList from "../visual/VList.mjs"
 
 /**
  * @type {string[]}
@@ -46,21 +47,21 @@ class List extends Pipes {
  * @param {string} content 
  */
 async function decideMatrix(board, content) {
-    const items = await imp.getCrux(content)
-        .then(item => convo.getValue()
-            .then(arr => [...arr, item]))
+    const newitem = await imp.getCrux(content)
+    const items = await convo.getValue().then(arr => [...arr, newitem])
     console.log("Convo array is currently:", items)
     convo.setValue(items)
-    imp.getMatrixDimensions(JSON.stringify(items)).then(
-        value => console.log("Dimensions for this are", value)
+
+    return imp.classifyItemsAsMatrix(JSON.stringify(items)).then(
+        value => {
+            /**
+             * @type {string[][]}
+             */
+            const graph = JSON.parse(value)
+            const idx = graph.findIndex(arr => arr.includes(newitem))
+            return VList.prepareList(board, newitem, idx)
+        }
     )
-    return
-    // await convo.setValue(
-    //     await convo.getValue()
-    //         .then(arr => arr.push(items))
-    //         .then(arr => imp.getMatrixDimensions(JSON.stringify(arr)))
-    //         .then(console.log)
-    // )
 }
 
 export default new List()

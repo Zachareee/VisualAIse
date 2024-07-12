@@ -1,4 +1,4 @@
-import { Board } from "@mirohq/miro-api";
+import { Board } from "@mirohq/miro-api/dist/api.js";
 
 export default class Pipes {
     /**

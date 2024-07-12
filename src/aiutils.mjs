@@ -6,6 +6,7 @@ import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import Calendar from './pipes/Calendar.mjs'
 import Pipes from './utils/Pipes.mjs'
 import List from './pipes/List.mjs'
+import { Board } from '@mirohq/miro-api/dist/api.js'
 
 const DEBUG = true
 const log = DEBUG ? console.log : () => { }
@@ -14,7 +15,7 @@ const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 /**
  * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
  * "createJSONDates" | "listOthers" | "conversationType" |
- * "augmentCalendar" | "getCrux" | "getMatrixDimensions"} IMPLEMENTATION
+ * "augmentCalendar" | "getCrux" | "classifyItemsAsMatrix"} IMPLEMENTATION
  */
 
 /**
@@ -29,15 +30,6 @@ function readSystem() {
  * @type {Record<IMPLEMENTATION, (message: string) => Promise<string>>}
  */
 export const imp = {
-    constructCard: async msg => msg,
-    findCategories: async msg => msg,
-    checkCalendarDates: async msg => msg,
-    createJSONDates: async msg => msg,
-    listOthers: async msg => msg,
-    augmentCalendar: async msg => msg,
-    getCrux: async msg => msg,
-    getMatrixDimensions: async msg => msg,
-    conversationType: async msg => msg
 }
 
 switch (IMPLEMENTATION) {
@@ -53,7 +45,7 @@ switch (IMPLEMENTATION) {
     case "openai":
         const openai = new OpenAI()
         const system = readSystem()
-        for (const prop in imp) {
+        for (const prop in system) {
             imp[prop] = createOpenAIModel(openai, system[prop])
         }
         break
@@ -147,5 +139,5 @@ function createOpenAIModel(openai, system) {
     return content => openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }]
-    }).then(data => data.choices[0]?.message?.content ?? 0)
+    }).then(data => data.choices[0]?.message?.content ?? "")
 }

@@ -8,7 +8,8 @@ import { renderFile } from "ejs"
 import Storage from "./store.mjs"
 import {
     getBoards, getBoard, createCard,
-    deleteCard, updateCard, boardIsNull
+    deleteCard, updateCard, boardIsNull,
+    unwrapGenerator
 } from "./miroutils.mjs"
 import { sortCards } from "./mirohighlevel.mjs"
 import { chat, decide } from "./aiutils.mjs"
@@ -72,7 +73,7 @@ app.get("/board", async (req, res) => {
     const { cookies: { session }, query: { board } } = req
     if (boardIsNull(board, res)) return
 
-    return res.json(await getBoard(miro.as(session), board))
+    return res.json(await unwrapGenerator((await getBoard(miro.as(session), board)).getAllItems()))
 })
 
 app.get("/stt", async (req, res) => {

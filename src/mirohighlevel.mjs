@@ -1,7 +1,9 @@
-import { Board, MiroApi } from "@mirohq/miro-api";
+import { Board, CardItem, FrameItem, MiroApi } from "@mirohq/miro-api";
 import { generateImage } from "./aiutils.mjs";
 // import { defaultRadius } from "./clustering.mjs";
 import { createBox, createCard, createFrame, createImage, filterItems, GONES, getBoard, strLike, updateCard } from "./miroutils.mjs";
+import { Position, PositionChange } from "@mirohq/miro-api/dist/api.js";
+import _ from "lodash"
 
 const VSPACE = 60 + 20, HSPACE = 320 + 20
 
@@ -70,23 +72,50 @@ export function stripTag(str) {
     return str.replaceAll(/<[^>]*>/g, "")
 }
 
-export async function sortCards(miroapi, boardId) {
+/**
+ * 
+ * @param {Board | FrameItem} frame 
+ * @returns 
+ */
+export async function sortCards(frame) {
+    /**
+     * @type {Record<string, CardItem[]>}
+     */
     const columns = {}
-    await getBoard(miroapi, boardId)
-        .then(board => filterItems(board, "card"))
+    await filterItems(frame, "card")
         .then(cards => cards.forEach(card => {
-            if (!columns[card.position.x]) columns[card.position.x] = [card]
-            else columns[card.position.x].push(card)
+            const x = card.position?.x ?? 0
+            if (!columns[x]) columns[x] = [card]
+            else columns[x].push(card)
         }))
-        .then(() => Object.entries(columns).forEach(
-            ([, arr]) => arr.sort((a, b) => a.position.y - b.position.y)
+        .then(() => Object.values(columns).forEach(
+            arr => arr.sort((a, b) => (a.position?.y ?? 0) - (b.position?.y ?? 0))
         ))
 
     return columns
 }
 
+/**
+ * 
+ * @param {Awaited<ReturnType<sortCards>>} sortedCards 
+ * @param {*} owner 
+ * @returns 
+ */
 function getLastCard(sortedCards, owner) {
-    const arr = Object.entries(sortedCards).find(([key, value]) => strLike(owner, value[0].data.title))?.[1]
-    const card = arr ? arr[arr.length - 1] : { position: { x: 0, y: 0 } }
-    return card
+    const arr = Object.entries(sortedCards).find(([key, value]) => strLike(owner, value[0].data?.title ?? ""))?.[1]
+    return arr ? arr[arr.length - 1] : { position: { x: 0, y: 0 } }
+}
+
+/**
+ * 
+ * @param {Awaited<ReturnType<sortCards>>} sortedCards 
+ * @param {number} idx 
+ * @returns {Required<PositionChange>}
+ */
+export function getLastCardByIdx(sortedCards, idx) {
+    const sortedArr = Object.entries(sortedCards).sort(([key1], [key2]) => Number(key1) - Number(key2))
+    const position = _.last(sortedArr?.[idx]?.[1])?.position
+
+    console.log("Last position is", position)
+    return { x: position?.x ?? 0, y: position?.y ?? 0 }
 }
