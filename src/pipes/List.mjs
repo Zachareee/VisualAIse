@@ -58,6 +58,7 @@ async function decideMatrix(board, content) {
              * @type {string[][]}
              */
             const graph = JSON.parse(value)
+            console.log("The graph is", graph)
             const idx = graph.findIndex(arr => arr.includes(newitem))
             return VList.prepareList(board, newitem, idx)
         }

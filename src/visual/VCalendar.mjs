@@ -1,10 +1,9 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
 import { createBox, createFrame, createStickyNote, filterItems, findItem } from "../miroutils.mjs"
-import { calendarPosition } from "./Positions.mjs"
+import { BOXSIZE, calendarPosition } from "./Positions.mjs"
 
 const CalendarFrameName = "Calendar"
-const BOXSIZE = 300
 
 class VCalendar {
     /**

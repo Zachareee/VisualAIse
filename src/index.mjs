@@ -16,6 +16,8 @@ import { chat, decide } from "./aiutils.mjs"
 // import MiroBrowser from "./puppet.mjs"
 // import { findClusters } from "./clustering.mjs"
 import Pipes from "./utils/Pipes.mjs"
+import VList from "./visual/VList.mjs"
+import VCalendar from "./visual/VCalendar.mjs"
 
 // Variables
 const PORT = process.env.port || 3000
@@ -106,6 +108,20 @@ app.post("/chats", async (req, res) => {
         res.send((await Promise.all(pipes.map(e => e.finish()))).filter(value => value))
     })
 
+})
+
+app.post("/list", async (req, res) => {
+    const { query: { board }, body, cookies: { session } } = req
+
+    VList.prepareList(await getBoard(miro.as(session), board), body.content, 1)
+    res.send("ok")
+})
+
+app.post("/calendar", async (req, res) => {
+    const { query: { board }, body, cookies: { session } } = req
+
+    VCalendar.prepareCalendar(await getBoard(miro.as(session), board), body)
+    res.send("ok")
 })
 
 app.post("/decide", async (req, res) => {

@@ -108,14 +108,13 @@ function getLastCard(sortedCards, owner) {
 
 /**
  * 
- * @param {Awaited<ReturnType<sortCards>>} sortedCards 
+ * @param {[string, CardItem[]][]} sortedCards 
  * @param {number} idx 
  * @returns {Required<PositionChange>}
  */
 export function getLastCardByIdx(sortedCards, idx) {
-    const sortedArr = Object.entries(sortedCards).sort(([key1], [key2]) => Number(key1) - Number(key2))
+    const sortedArr = sortedCards.sort(([key1], [key2]) => Number(key1) - Number(key2))
     const position = _.last(sortedArr?.[idx]?.[1])?.position
 
-    console.log("Last position is", position)
     return { x: position?.x ?? 0, y: position?.y ?? 0 }
 }
