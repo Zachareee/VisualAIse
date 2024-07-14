@@ -1,5 +1,3 @@
-// import { Ollama } from 'ollama'
-import OpenAI from 'openai'
 import fs from 'fs'
 import { deleteCard } from './miroutils.mjs'
 import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
@@ -8,8 +6,11 @@ import Pipes from './utils/Pipes.mjs'
 import List from './pipes/List.mjs'
 import log from "./Logger.mjs"
 import { Board } from '@mirohq/miro-api'
+import OpenAIModel from './chatmodels/OpenAIModel.mjs'
+import OllamaModel from './chatmodels/OllamaModel.mjs'
+import ChatModel from './chatmodels/ChatModel.mjs'
 
-const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
+const { EDENAITOKEN, IMPLEMENTATION } = process.env
 
 /**
  * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
@@ -19,38 +20,37 @@ const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
 /**
  * 
- * @returns {Record<IMPLEMENTATION, string>}
+ * @type {Record<IMPLEMENTATION, string>}
  */
-function readSystem() {
-    return JSON.parse(fs.readFileSync("System.json", "ascii"))
-}
+const system = JSON.parse(fs.readFileSync("System.json", "ascii"))
 
 /**
  * @type {Record<IMPLEMENTATION, (message: string) => Promise<string>>}
  */
-export const imp = {
-}
-
-switch (IMPLEMENTATION) {
-    case "ollama":
-        const ollama = {}
-        const model = "interpreter"
-        await ollama.create({ model, path: "ModelFile" })
-        imp.constructCard = async content => ollama.chat({
-            model,
-            messages: [{ role: "user", content }]
-        }).then(res => res.message.content)
-        break
-    case "openai":
-        const openai = new OpenAI()
-        const system = readSystem()
-        for (const prop in system) {
-            imp[prop] = createOpenAIModel(openai, system[prop])
+export const imp = (() => {
+    /**
+     * @type {ChatModel}
+     */
+    const model = (() => {
+        switch (IMPLEMENTATION) {
+            case "ollama":
+                return new OllamaModel()
+            case "openai":
+                return new OpenAIModel()
+            default:
+                throw new Error("AI model not set")
         }
-        break
-    default:
-        throw new Error("AI model not set")
-}
+    })()
+
+    /**
+     * @type {object}
+     */
+    const imp = {}
+    for (const prop in system) {
+        imp[prop] = model.createModel(system[prop])
+    }
+    return imp
+})()
 
 const CONVOTYPES = {
     CALENDAR: "calendar",
@@ -145,17 +145,4 @@ export async function generateImage(text) {
     log(res)
     log(res.items[0].image_resource_url)
     return res
-}
-
-/**
- * 
- * @param {OpenAI} openai 
- * @param {string} system 
- * @returns {(content: string) => Promise<string>}
- */
-function createOpenAIModel(openai, system) {
-    return content => openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
-    }).then(data => data.choices[0]?.message?.content ?? "")
 }
