@@ -88,7 +88,7 @@ app.post("/chat", async (req, res) => {
 
     console.log("Message received:", content)
     getBoard(miro.as(session), board).then(async board =>
-        (await chat(board, text)).finish()
+        (await chat(board, content)).finish()
     )
     return res.send("ok")
 })

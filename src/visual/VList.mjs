@@ -1,8 +1,6 @@
-import { Board, FrameItem } from "@mirohq/miro-api";
-import { createCard, createFrame, findItem } from "../miroutils.mjs";
-import { BOXSIZE, CARDHEIGHT, CARDWIDTH, listPosition } from "./Positions.mjs";
-import { getLastCardByIdx, sortCards } from "../mirohighlevel.mjs";
-import { PositionChange } from "@mirohq/miro-api/dist/api.js";
+import { Board, CardItem, FrameItem } from "@mirohq/miro-api";
+import { createCard, createFrame, filterItems, findItem, strLike } from "../miroutils.mjs";
+import { CARDHEIGHT, CARDWIDTH, listPosition } from "./Positions.mjs";
 
 const MatrixFrameName = "Matrix"
 
@@ -10,24 +8,70 @@ class VList {
     /**
      * 
      * @param {Board} board 
-     * @param {string} createdItem 
-     * @param {number} idx 
+     * @param {string[][]} graph 
      */
-    async prepareList(board, createdItem, idx) {
+    async prepareList(board, graph) {
         const matrix = (await findItem(board, MatrixFrameName, "frame"))
             || (await createMatrix(board))
 
-        const sortedCards = Object.entries(await sortCards(matrix))
-        if (sortedCards.length < idx + 1) { // max idx of columns is length + 1
-            return addColumn(board, matrix, createdItem)
-        }
+        await expandFrame(matrix, graph)
+        console.log("expandFrame done")
 
-        const position = getLastCardByIdx(sortedCards, idx)
-        return addRow(board, matrix, position, createdItem)
+        await filterItems(matrix, "card").then(
+            cards => Promise.all(graph.map(
+                (titleArr, row) => Promise.all(titleArr.map(
+                    async (title, column) => {
+                        const card = findAndPopCard(cards, title)
+                        if (!card) return createCard(board, { ...cardDefaults, ...calculatePosition(column, row), title, parent: matrix })
+                        return changePosition(card, { column, row })
+                    }
+                ))
+            ))
+        )
+        await shrinkFrame(matrix, graph)
     }
 }
 
 export default new VList()
+
+/**
+ * 
+ * @param {FrameItem} frame 
+ * @param {string[][]} graph 
+ */
+async function expandFrame(frame, graph) {
+    const framewidth = frame.geometry?.width ?? 0, frameheight = frame.geometry?.height ?? 0
+    const width = Math.max(CARDWIDTH * graph.length, framewidth)
+    const height = Math.max(CARDHEIGHT * graph.map(arr => arr.length).reduce((num1, num2) => Math.max(num1, num2)), frameheight)
+
+    console.log(`Expanding, width: ${width}, height: ${height}`)
+    return frame.update({ geometry: { width, height } })
+}
+
+/**
+ * 
+ * @param {FrameItem} frame 
+ * @param {string[][]} graph 
+ */
+async function shrinkFrame(frame, graph) {
+    const width = CARDWIDTH * graph.length
+    const height = CARDHEIGHT * graph.map(arr => arr.length).reduce((num1, num2) => Math.max(num1, num2))
+
+    console.log(`Shrinking, width: ${width}, height: ${height}`)
+    return frame.update({ geometry: { width, height } })
+}
+
+/**
+ * 
+ * @param {CardItem[]} cardItems 
+ * @param {string} title 
+ */
+function findAndPopCard(cardItems, title) {
+    const idx = cardItems.findIndex(card => strLike(title, card.data?.title ?? ""))
+    if (idx === -1) return
+
+    return cardItems.splice(idx, 1)[0]
+}
 
 /**
  * 
@@ -46,37 +90,20 @@ async function createMatrix(board) {
 
 /**
  * 
- * @param {Board} board 
- * @param {FrameItem} matrix
- * @param {Required<PositionChange>} position 
- * @param {string} newItem 
+ * @param {CardItem} card 
+ * @param {Record<"column"|"row", number>} param1
  */
-async function addRow(board, matrix, position, newItem) {
-    const height = matrix.geometry?.height ?? 0
-    if (height < (position.y ?? 0) + CARDHEIGHT) {
-        await matrix.update({ geometry: { height: height + CARDHEIGHT } })
-    }
-    return proxyCreateCard(board, { title: newItem, x: position.x, y: position.y + CARDHEIGHT, parent: matrix})
+async function changePosition(card, { column, row }) {
+    return card.update({ position: calculatePosition(column, row) })
 }
 
 /**
  * 
- * @param {Board} board 
- * @param {FrameItem} matrix 
- * @param {string} createdItem 
+ * @param {number} column 
+ * @param {number} row 
  */
-async function addColumn(board, matrix, createdItem) {
-    const matwidth = matrix.geometry?.width ?? 0
-    const width = matwidth - matwidth % CARDWIDTH
-    return matrix.update({ geometry: { width: width + CARDWIDTH } })
-        .then(() => proxyCreateCard(board, { title: createdItem, x: width + CARDWIDTH / 2, y: CARDHEIGHT / 2, parent: matrix }))
+function calculatePosition(column, row) {
+    return { x: CARDWIDTH * (row + 0.5), y: CARDHEIGHT * (column + 0.5) }
 }
 
-/**
- * 
- * @param {Board} board 
- * @param {Parameters<createCard>[1]} param1 
- */
-async function proxyCreateCard(board, { title, x, y, parent }) {
-    return createCard(board, { title, x, y, parent, height: CARDHEIGHT })
-}
+const cardDefaults = { width: CARDWIDTH, height: CARDHEIGHT }

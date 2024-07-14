@@ -97,7 +97,7 @@ export async function sortCards(frame) {
 
 /**
  * 
- * @param {Awaited<ReturnType<sortCards>>} sortedCards 
+ * @param {Awaited<ReturnType<typeof sortCards>>} sortedCards 
  * @param {*} owner 
  * @returns 
  */
