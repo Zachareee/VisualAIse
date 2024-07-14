@@ -1,0 +1,1 @@
+export default Boolean(process.env.PRESENT) ? () => { } : console.log 

@@ -6,10 +6,9 @@ import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import Calendar from './pipes/Calendar.mjs'
 import Pipes from './utils/Pipes.mjs'
 import List from './pipes/List.mjs'
-import { Board } from '@mirohq/miro-api/dist/api.js'
+import log from "./Logger.mjs"
+import { Board } from '@mirohq/miro-api'
 
-const DEBUG = true
-const log = DEBUG ? console.log : () => { }
 const { host, EDENAITOKEN, IMPLEMENTATION } = process.env
 
 /**
@@ -34,7 +33,7 @@ export const imp = {
 
 switch (IMPLEMENTATION) {
     case "ollama":
-        const ollama = new Ollama({ host })
+        const ollama = {}
         const model = "interpreter"
         await ollama.create({ model, path: "ModelFile" })
         imp.constructCard = async content => ollama.chat({
@@ -66,20 +65,39 @@ const CONVOTYPES = {
  */
 export async function chat(board, content) {
     log("DEBUG: At chat")
+    console.log("Chat:", content)
     return imp.conversationType(content).then(
         /**
          * 
-         * @param {keyof CONVOTYPES} result 
+         * @param {keyof typeof CONVOTYPES} result 
          * @returns 
          */
         async result => {
             log("Conversation type:", result)
-            return pipeMapping[result]?.start(board, content) || new Pipes()
+            return findConvoType(board, result, content)
         })
 }
 
 /**
- * @type {Record<keyof CONVOTYPES, Pipes>}
+ * 
+ * @param {Board} board 
+ * @param {keyof typeof CONVOTYPES} type 
+ * @param {string} content 
+ * @returns 
+ */
+async function findConvoType(board, type, content) {
+    return [await pipeMapping[type]?.start(board, content) || new Pipes()]
+    /**
+     * @type {Pipes[]}
+     */
+    const arr = []
+    arr.push(await Calendar.start(board, content))
+    arr.push(await List.start(board, content))
+    return arr
+}
+
+/**
+ * @type {Partial<Record<keyof typeof CONVOTYPES, Pipes>>}
  */
 const pipeMapping = {
     [CONVOTYPES.CALENDAR]: Calendar,
@@ -138,6 +156,6 @@ export async function generateImage(text) {
 function createOpenAIModel(openai, system) {
     return content => openai.chat.completions.create({
         model: "gpt-3.5-turbo",
-        messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }]
+        messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
     }).then(data => data.choices[0]?.message?.content ?? "")
 }

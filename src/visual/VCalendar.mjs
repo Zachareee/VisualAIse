@@ -2,6 +2,7 @@ import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
 import { createBox, createFrame, createStickyNote, filterItems, findItem } from "../miroutils.mjs"
 import { BOXSIZE, calendarPosition } from "./Positions.mjs"
+import log from "../Logger.mjs"
 
 const CalendarFrameName = "Calendar"
 
@@ -24,25 +25,6 @@ class VCalendar {
             )
         }
         return calendarframe
-        /*const [requiredMin, requiredMax] = getRange(Object.keys(array).map(num => Number(num)))
-        if (!requiredMin) return
-
-        const calendarframe = await findItem(board, CalendarFrameName, "frame")
-        if (!calendarframe) {
-            return createCalendar(board, requiredMin, requiredMax)
-        }
-
-        const items = await getUnmodifiedItemsFromFrame(calendarframe)
-        const [min, max] = getRange(items.map(item => Number(item.data?.content)))
-
-        if (min) {
-            if (requiredMin < min) {
-                createDatesExtendFrame(board, calendarframe, requiredMin, min - requiredMin, 0)
-            }
-            if (requiredMax > max) {
-                createDatesExtendFrame(board, calendarframe, max + 1, requiredMax - max, requiredMax - max)
-            }
-        }*/
     }
 }
 
@@ -142,11 +124,8 @@ async function getUnmodifiedItemsFromFrame(frame) {
  * @param {number} [max=0]
  */
 async function createCalendar(board, min = 0, max = 0) {
-    // const days = 31
-    // const width = 7 * BOXSIZE, height = Math.ceil(days / 7) * BOXSIZE
     const count = max - min + 1
     const width = count * BOXSIZE, height = BOXSIZE
-    // const x = width / 2 - 0.5 * BOXSIZE, y = height / 2 - 0.5 * BOXSIZE
 
     // calendar
     const frame = await createFrame(board, {
@@ -156,18 +135,9 @@ async function createCalendar(board, min = 0, max = 0) {
         geometry: { height, width: 100 }
     })
 
-    console.log("items is empty, initialising calendar...")
+    log("items is empty, initialising calendar...")
 
     return frame
-
-    // for (let i = 0; i < days; i++)
-    //     createBox(board, {
-    //         size, content: `${i + 1}`,
-    //         position: {
-    //             x: size * (i % 7),
-    //             y: size * Math.trunc(i / 7)
-    //         }, parent: calendar.id
-    //     })
 }
 
 export default new VCalendar()

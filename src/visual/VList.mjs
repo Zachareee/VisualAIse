@@ -1,6 +1,7 @@
 import { Board, CardItem, FrameItem } from "@mirohq/miro-api";
 import { createCard, createFrame, filterItems, findItem, strLike } from "../miroutils.mjs";
 import { CARDHEIGHT, CARDWIDTH, listPosition } from "./Positions.mjs";
+import log from "../Logger.mjs"
 
 const MatrixFrameName = "Matrix"
 
@@ -15,7 +16,7 @@ class VList {
             || (await createMatrix(board))
 
         await expandFrame(matrix, graph)
-        console.log("expandFrame done")
+        log("expandFrame done")
 
         await filterItems(matrix, "card").then(
             cards => Promise.all(graph.map(
@@ -44,7 +45,7 @@ async function expandFrame(frame, graph) {
     const width = Math.max(CARDWIDTH * graph.length, framewidth)
     const height = Math.max(CARDHEIGHT * graph.map(arr => arr.length).reduce((num1, num2) => Math.max(num1, num2)), frameheight)
 
-    console.log(`Expanding, width: ${width}, height: ${height}`)
+    log(`Expanding, width: ${width}, height: ${height}`)
     return frame.update({ geometry: { width, height } })
 }
 
@@ -57,7 +58,7 @@ async function shrinkFrame(frame, graph) {
     const width = CARDWIDTH * graph.length
     const height = CARDHEIGHT * graph.map(arr => arr.length).reduce((num1, num2) => Math.max(num1, num2))
 
-    console.log(`Shrinking, width: ${width}, height: ${height}`)
+    log(`Shrinking, width: ${width}, height: ${height}`)
     return frame.update({ geometry: { width, height } })
 }
 
