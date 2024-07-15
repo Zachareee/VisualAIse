@@ -65,14 +65,29 @@ function sendSentence({ results }) {
     if (sentence.isFinal) send(sentence[0].transcript)
 }
 
+/**
+ * @type {string[]}
+ */
+const sendArr = []
+let started = false
+
 function send(content) {
-    fetch(`/chat?board=${board}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            content
-        })
-    }).catch(console.error)
+    sendArr.push(content)
+    if (!started) start()
+}
+
+async function start() {
+    started = true
+    while (sendArr.length) {
+        await fetch(`/chat?board=${board}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                content: sendArr.shift()
+            })
+        }).catch(console.error)
+    }
+    started = false
 }

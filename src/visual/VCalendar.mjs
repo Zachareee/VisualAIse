@@ -17,11 +17,14 @@ class VCalendar {
 
         const items = await getUnmodifiedItemsFromFrame(calendarframe)
         for (const [date, topic] of Object.entries(array)) {
+            log("The current date is", date)
             const idx = idxInSortedArray(items.map(item => Number(item.data?.content)), Number(date))
             await extendFrame(calendarframe).then(
                 () => Promise.all([rightShiftItems(items, idx), rightShiftStickys(calendarframe, idx)])
             ).then(
                 () => addDate(board, calendarframe, { date, topic, idx })
+            ).then(
+                ([shape]) => items.push(shape)
             )
         }
         return calendarframe
@@ -101,7 +104,9 @@ async function rightShiftStickys(frame, startingFrom = 0, times = 1) {
  */
 async function extendFrame(frame, times = 1) {
     const width = frame.geometry?.width ?? 0
-    return frame.update({ geometry: { width: (width - width % BOXSIZE) + times * BOXSIZE } })
+    const newwidth = width - width % BOXSIZE + times * BOXSIZE
+    frame.geometry = { ...frame.geometry, width: newwidth }
+    return frame.update({ geometry: { width: newwidth } })
 }
 
 /**

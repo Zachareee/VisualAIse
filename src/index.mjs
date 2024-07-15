@@ -88,8 +88,8 @@ app.post("/chat", async (req, res) => {
     if (boardIsNull(board, res)) return
 
     log("Message received:", content)
-    getBoard(miro.as(session), board).then(async board =>
-        (await chat(board, content)).finish()
+    await getBoard(miro.as(session), board).then(async board =>
+        chat(board, content)
     )
     return res.send("ok")
 })
