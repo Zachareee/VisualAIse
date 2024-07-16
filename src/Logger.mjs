@@ -1,1 +1,3 @@
-export default Boolean(process.env.PRESENT) ? () => { } : console.log 
+const presentMode = process.env.PRESENT === "true"
+console.log("Presentation mode:", presentMode)
+export default presentMode ? () => { } : console.log 
