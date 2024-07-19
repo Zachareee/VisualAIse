@@ -76,7 +76,7 @@ app.get("/board", async (req, res) => {
     const { cookies: { session }, query: { board } } = req
     if (boardIsNull(board, res)) return
 
-    return res.json(await unwrapGenerator((await getBoard(miro.as(session), board)).getAllItems()))
+    return res.send(await getBoard(miro.as(session), board))
 })
 
 app.get("/stt", async (req, res) => {
