@@ -15,13 +15,16 @@ class OllamaModel extends ChatModel {
 
     /**
      * 
-     * @param {string} system 
+     * @param {import('../aiutils.mjs').SYSTEMSTRUCT} system 
      * @returns {(content: string) => Promise<string>}
      */
-    createModel(system) {
+    createModel({prompt, temperature}) {
         return content => this.ollama.chat({
             model,
-            messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
+            messages: [{ role: "system", content: prompt }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
+            options: {
+                temperature
+            }
         }).then(data => data.message.content)
     }
 }

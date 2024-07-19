@@ -9,13 +9,14 @@ class OpenAIModel extends ChatModel {
 
     /**
      * 
-     * @param {string} system 
+     * @param {import('../aiutils.mjs').SYSTEMSTRUCT} system 
      * @returns {(content: string) => Promise<string>}
      */
-    createModel(system) {
+    createModel({prompt, temperature}) {
         return content => this.openai.chat.completions.create({
             model: "gpt-3.5-turbo",
-            messages: [{ role: "system", content: system }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
+            messages: [{ role: "system", content: prompt }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
+            temperature
         }).then(data => data.choices[0]?.message?.content ?? "")
     }
 }

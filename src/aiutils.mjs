@@ -19,13 +19,18 @@ const { EDENAITOKEN, IMPLEMENTATION } = process.env
  */
 
 /**
+ * @typedef {{prompt: string, temperature: number}} SYSTEMSTRUCT
+ */
+
+/**
  * 
- * @type {Record<IMPLEMENTATION, string>}
+ * @type {Record<IMPLEMENTATION, SYSTEMSTRUCT>}
  */
 const system = JSON.parse(fs.readFileSync("System.json", "ascii"))
 
 /**
- * @type {Record<IMPLEMENTATION, (message: string) => Promise<string>>}
+ * @type {Record<Exclude<IMPLEMENTATION, "conversationType">, (message: string) => Promise<string>>
+ * & {conversationType: (message: string) => Promise<keyof typeof CONVOTYPES>}}
  */
 export const imp = (() => {
     /**
@@ -47,7 +52,8 @@ export const imp = (() => {
      */
     const imp = {}
     for (const prop in system) {
-        imp[prop] = model.createModel(system[prop])
+        const property = /** @type {IMPLEMENTATION} */ (prop)
+        imp[property] = model.createModel(system[property])
     }
     return imp
 })()
@@ -67,11 +73,6 @@ export async function chat(board, content) {
     log("DEBUG: At chat")
     console.log("Chat:", content)
     return imp.conversationType(content).then(
-        /**
-         * 
-         * @param {keyof typeof CONVOTYPES} result 
-         * @returns 
-         */
         async result => {
             log("Conversation type:", result)
             return findConvoType(board, result, content)
