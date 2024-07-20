@@ -173,7 +173,7 @@ export function strLike(regex, test) {
  */
 export async function findItem(board, searchKey, type) {
     const textLocation = findText(type)
-    return (await filterItems(board, type)).find(item => strLike(searchKey, item.data[textLocation]))
+    return (await filterItems(board, type)).find(item => strLike(searchKey, item.data?.[textLocation]))
 }
 
 /**

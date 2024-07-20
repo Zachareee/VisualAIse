@@ -11,6 +11,10 @@ import { Board } from "@mirohq/miro-api";
  */
 const originalState = {}
 const state = new State(originalState)
+/**
+ * @type {Date}
+ */
+export let date
 
 class Calendar extends Pipes {
     /**
@@ -46,6 +50,10 @@ export default new Calendar()
 async function decideCalendar(board, content) {
     return imp.checkCalendarDates(content).then(async result => {
         log("Calendar dates found for", content, result)
+        if (!date) {
+            const newDate = new Date()
+            date = new Date(`1 ${await imp.getMonth(content)} ${newDate.getFullYear()} UTC`)
+        }
         if (Boolean(result))
             return imp.createJSONDates(content)
                 .then(JSON.parse).then(

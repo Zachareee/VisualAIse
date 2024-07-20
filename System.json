@@ -30,5 +30,9 @@
     "classifyItemsAsMatrix": {
         "prompt": "Classify the items listed in #INPUT into a table, with each column in the table having similar items. Reply in JSON array format\n\n#INPUT example:\n[\"Apples are healthy\", \"Apples are affordable\", \"Apples rot quickly\"]\n\n#OUTPUT example\n[[\"Apples are healthy\", \"Apples are affordable\"], [\"Apples rot quickly\"]]\n\n#INPUT example\n[\"Marcus will do Devops\", \"Frontend will be settled by Adam\", \"Marcus wants to do security\", \"Charlie does backend\"]\n\n#OUTPUT example\n[[\"Marcus will do Devops\", \"Marcus wants to do security\"], [\"Frontend will be settled by Adam\"], [\"Charlie does backend\"]]",
         "temperature": 0
+    },
+    "getMonth": {
+        "prompt": "What month does this plan occur in? Only reply with the abbreviations of the month.\n\n#INPUT example\nWe are going out on July 17th, right?\n\n#OUTPUT example\nJul",
+        "temperature": 0
     }
 }

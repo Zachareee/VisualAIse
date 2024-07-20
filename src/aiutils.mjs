@@ -14,7 +14,7 @@ const { EDENAITOKEN, IMPLEMENTATION } = process.env
 
 /**
  * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
- * "createJSONDates" | "listOthers" | "conversationType" |
+ * "createJSONDates" | "listOthers" | "conversationType" | "getMonth" |
  * "augmentCalendar" | "getCrux" | "classifyItemsAsMatrix"} IMPLEMENTATION
  */
 
