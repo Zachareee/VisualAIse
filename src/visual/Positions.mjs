@@ -11,4 +11,6 @@ export const calendarPosition = { x: 0, y: 0 }
 /**
  * @type {PositionChange}
  */
-export const listPosition = { x: 0, y: 1000}
+export const listPosition = { x: 0, y: 1000 }
+
+export const textHeight = 100

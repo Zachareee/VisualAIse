@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
 import { createBox, createFrame, createStickyNote, filterItems, findItem } from "../miroutils.mjs"
-import { BOXSIZE, calendarPosition } from "./Positions.mjs"
+import { BOXSIZE, calendarPosition, textHeight } from "./Positions.mjs"
 import log from "../Logger.mjs"
 import { date as originalDate } from "../pipes/Calendar.mjs"
 import { PositionChange } from "@mirohq/miro-api/dist/api.js"
@@ -278,19 +278,14 @@ async function getUnmodifiedItemsFromFrame(frame) {
 
 /**
  * @param {Board} board
- * @param {number} [min=0]
- * @param {number} [max=0]
  */
-async function createCalendar(board, min = 0, max = 0) {
-    const count = max - min + 1
-    const width = count * BOXSIZE, height = BOXSIZE
-
+async function createCalendar(board) {
     // calendar
     const frame = await createFrame(board, {
         title: CalendarFrameName,
         bgColor: "#ffcee0",
         position: calendarPosition,
-        geometry: { height, width: 7 * BOXSIZE }
+        geometry: { height: BOXSIZE + textHeight, width: 7 * BOXSIZE }
     })
 
     log("items is empty, initialising calendar...")
@@ -304,7 +299,7 @@ async function createCalendar(board, min = 0, max = 0) {
  * @param {number} x 
  */
 function calculatePosition(x, y) {
-    return { x: BOXSIZE * (x + 0.5), y: BOXSIZE * (y + 0.5) }
+    return { x: BOXSIZE * (x + 0.5), y: textHeight + BOXSIZE * (y + 0.5) }
 }
 
 export default new VCalendar()
