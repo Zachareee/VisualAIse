@@ -56,7 +56,7 @@ async function expandFrame(frame, graph) {
  */
 async function shrinkFrame(frame, graph) {
     const width = CARDWIDTH * graph.length
-    const height = CARDHEIGHT * graph.map(arr => arr.length).reduce((num1, num2) => Math.max(num1, num2))
+    const height = Math.max(CARDHEIGHT * graph.map(arr => arr.length).reduce((num1, num2) => Math.max(num1, num2)), 100)
 
     log(`Shrinking, width: ${width}, height: ${height}`)
     return frame.update({ geometry: { width, height } })
