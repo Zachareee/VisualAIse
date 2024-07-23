@@ -74,7 +74,7 @@ async function addDate(board, parent, { topic, position }) {
  * @returns 
  */
 function rowFormula(date, startDay) {
-    return Math.floor((date - startDay + 1) / 7)
+    return Math.floor((date + startDay - 1) / 7)
 }
 
 /**
@@ -96,15 +96,12 @@ async function fillBoxes(board, parent, items, date, startDay) {
 
     const newDates = [...dates, Number(date)]
     const datesRange = getDateRange(newDates)
-    newDates.sort((a, b) => a - b)
-        .reduce((item1, item2) => {
-            const accum = item1, current = item2
-            for (let i = accum + 1; i < current; i++) {
-                log("For loop run")
-                arr.push(createDateBox(board, parent, i, startDay, datesRange))
-            }
-            return item2
-        })
+    newDates.reduce((accum, current) => {
+        for (let i = accum + 1; i < current; i++) {
+            arr.push(createDateBox(board, parent, i, startDay, datesRange))
+        }
+        return current
+    })
 
     return [...items, ...await Promise.all(arr)]
 }
@@ -123,12 +120,10 @@ async function createDateBox(board, parent, date, startDay, datesRange) {
 
     const row = rowFormula(date, startDay)
     const y = rowNumber(row, startDay, datesRange)
-    console.log('y is', y)
-    const position = calculatePosition(x, y)
     return createBox(board, {
         size: BOXSIZE,
         content: `${date}`,
-        position,
+        position: calculatePosition(x, y),
         parent
     })
 }
@@ -142,16 +137,7 @@ async function createDateBox(board, parent, date, startDay, datesRange) {
 function rowNumber(row, startDay, datesRange) {
     const min = rowFormula(datesRange[0] ?? 31, startDay)  // set to some row number which cannot exist
     const max = rowFormula(datesRange[1] ?? 31, startDay)  // set to some row number which cannot exist
-    console.log("Min is", min)
-    if (row < min) {
-        log("Less than")
-        return 0
-    }
-    if (row > max) {
-        log("More than")
-        return row - max
-    }
-    log("Within range")
+    if (row < min) return 0
     return row - min
 }
 
