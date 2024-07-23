@@ -1,7 +1,7 @@
 import { PositionChange } from "@mirohq/miro-api/dist/api.js";
 
 export const BOXSIZE = 300
-export const CARDWIDTH = 320, CARDHEIGHT = 100
+export const CARDWIDTH = 320, CARDHEIGHT = 60
 
 /**
  * @type {PositionChange}
