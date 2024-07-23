@@ -25,7 +25,7 @@ class VCalendar {
                 // () => Promise.all([rightShiftItems(items, idx), rightShiftStickys(calendarframe, idx)])
                 day => fillBoxes(board, calendarframe, items, date, day)
             ).then(
-                arr => items = arr
+                arr => items = arr.sort((item1, item2) => Number(item1.data?.content) - Number(item2.data?.content))
             ).then(
                 arr => addDate(board, calendarframe, {
                     topic,
@@ -61,16 +61,15 @@ async function addDate(board, parent, { topic, position }) {
  * @param {number} startDay
  */
 async function fillBoxes(board, parent, items, date, startDay) {
-    log("Shape array is", items)
-    if (items.length == 0)
-        return [await createDateBox(board, parent, Number(date), startDay)]
-
     /**
      * @type {Promise<ShapeItem>[]}
      */
-    const arr = []
-    items.reduce((item1, item2) => {
-        const accum = Number(item1.data?.content), current = Number(item2.data?.content)
+    const arr = [createDateBox(board, parent, Number(date), startDay)]
+    if (items.length <= 1)
+        return Promise.all(arr);
+
+    [...items.map(shape => Number(shape.data?.content)), Number(date)].reduce((item1, item2) => {
+        const accum = item1, current = item2
         for (let i = accum + 1; i < current; i++) {
             log("For loop run")
             arr.push(createDateBox(board, parent, i, startDay))
@@ -234,7 +233,7 @@ async function increaseFrameHeight(frame, numRows) {
  */
 async function getUnmodifiedItemsFromFrame(frame) {
     const newBoard = await filterItems(frame, "shape")
-    return newBoard.filter(item => item.position?.y === BOXSIZE / 2)
+    return newBoard.filter(item => (item.position?.x ?? 0) % BOXSIZE === BOXSIZE / 2 && (item.position?.y ?? 0) % BOXSIZE === BOXSIZE / 2)
 }
 
 /**
