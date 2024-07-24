@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
-import { createBox, createFrame, createStickyNote, filterItems, findItem } from "../miroutils.mjs"
-import { BOXSIZE, calendarPosition, textHeight } from "./Positions.mjs"
+import { createBox, createFrame, createStickyNote, createText, filterItems, findItem, updateFrameGeo } from "../miroutils.mjs"
+import { BOXSIZE, calendarPosition, stickySizeReduction, textHeight } from "./Positions.mjs"
 import log from "../Logger.mjs"
 import { date as originalDate } from "../pipes/Calendar.mjs"
 import { PositionChange } from "@mirohq/miro-api/dist/api.js"
@@ -21,9 +21,7 @@ class VCalendar {
         for (const [date, topic] of Object.entries(array)) {
             log("The current date is", date)
             log("Current dates are", items.map(shape => shape.data?.content))
-            // const idx = idxInSortedArray(items.map(item => Number(item.data?.content)), Number(date))
             await extendFrame(calendarframe, items.map(item => Number(item.data?.content)), Number(date)).then(
-                // () => Promise.all([rightShiftItems(items, idx), rightShiftStickys(calendarframe, idx)])
                 day => fillBoxes(board, calendarframe, items, date, day)
             ).then(
                 arr => items = arr.sort((item1, item2) => Number(item1.data?.content) - Number(item2.data?.content))
@@ -63,7 +61,8 @@ async function addDate(board, parent, { topic, position }) {
     return createStickyNote(board, {
         parent,
         content: topic.join('\n'),
-        position: position ?? calculatePosition(0, 0)
+        position: position ?? calculatePosition(0, 0),
+        size: BOXSIZE - stickySizeReduction
     })
 }
 
@@ -136,76 +135,9 @@ async function createDateBox(board, parent, date, startDay, datesRange) {
  */
 function rowNumber(row, startDay, datesRange) {
     const min = rowFormula(datesRange[0] ?? 31, startDay)  // set to some row number which cannot exist
-    const max = rowFormula(datesRange[1] ?? 31, startDay)  // set to some row number which cannot exist
     if (row < min) return 0
     return row - min
 }
-
-/**
-//  * 
-//  * @param {Board} board 
-//  * @param {FrameItem} parent 
-//  * @param {{date: string, topic: string[], idx: number}} param2 
-//  * @returns 
-//  */
-// async function addDate(board, parent, { date, topic, idx }) {
-//     return Promise.all([
-//         createBox(board, {
-//             size: BOXSIZE,
-//             content: date,
-//             position: {
-//                 x: BOXSIZE * (idx + 0.5),
-//                 y: BOXSIZE / 2
-//             },
-//             parent
-//         }),
-//         createStickyNote(board, {
-//             content: topic.join("\n"),
-//             position: {
-//                 x: BOXSIZE * (idx + 0.5),
-//                 y: BOXSIZE / 2
-//             },
-//             parent
-//         })
-//     ])
-// }
-
-// /**
-//  * 
-//  * Compares the "compare" value against all numbers in the array
-//  * @param {number[]} arr A sorted array
-//  * @param {number} compare A value to compare against
-//  * @returns {number} The index it would take as if it was part of the sorted array
-//  */
-// function idxInSortedArray(arr, compare) {
-//     const idx = arr.findIndex(value => compare < value)
-//     return idx === -1 ? arr.length : idx
-// }
-
-// /**
-//  * 
-//  * @param {ShapeItem[]} items Array of items
-//  * @param {number} [startingFrom=0] The starting index to shift items
-//  * @param {number} [times=1] How many times to shift
-//  */
-// function rightShiftItems(items, startingFrom = 0, times = 1) {
-//     return items.filter((_, idx) => idx >= startingFrom).map(item =>
-//         item.update({ position: { x: (item.position?.x ?? 0) + times * BOXSIZE } })
-//     )
-// }
-
-// /**
-//  * @param {FrameItem} frame 
-//  * @param {number} [startingFrom=0] The starting index to shift items
-//  * @param {number} [times=1] How many times to shift
-//  */
-// async function rightShiftStickys(frame, startingFrom = 0, times = 1) {
-//     return Promise.all((await filterItems(frame, "sticky_note"))
-//         .sort((a, b) => (a.position?.x ?? 0) - (b.position?.x ?? 0))
-//         .filter((_, idx) => idx >= startingFrom)
-//         .map(note => note.update({ position: { x: (note.position?.x ?? 0) + times * BOXSIZE } }))
-//     )
-// }
 
 /**
  * 
@@ -260,10 +192,8 @@ async function downShiftAll(frame, times) {
  * @param {number} numRows 
  */
 async function increaseFrameHeight(frame, numRows) {
-    log(numRows)
     const height = (frame.geometry?.height ?? 0) + numRows * BOXSIZE
-    frame.geometry = { ...frame.geometry, height }
-    return frame.update({ geometry: { height } })
+    return updateFrameGeo(frame, { height })
 }
 
 /**
@@ -272,8 +202,16 @@ async function increaseFrameHeight(frame, numRows) {
  * @returns 
  */
 async function getUnmodifiedItemsFromFrame(frame) {
-    const newBoard = await filterItems(frame, "shape")
-    return newBoard.filter(item => (item.position?.x ?? 0) % BOXSIZE === BOXSIZE / 2 && (item.position?.y ?? 0) % BOXSIZE === BOXSIZE / 2)
+    return (await filterItems(frame, "shape")).filter(boxCentered)
+}
+
+/**
+ * 
+ * @param {ShapeItem} box 
+ */
+function boxCentered(box) {
+    return (box.position?.x ?? 0) % BOXSIZE === BOXSIZE / 2 &&
+        ((box.position?.y ?? textHeight) - textHeight) % BOXSIZE === BOXSIZE / 2
 }
 
 /**
@@ -286,9 +224,20 @@ async function createCalendar(board) {
         bgColor: "#ffcee0",
         position: calendarPosition,
         geometry: { height: BOXSIZE + textHeight, width: 7 * BOXSIZE }
-    })
+    });
 
-    log("items is empty, initialising calendar...")
+    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        .forEach((content, idx) => createText(board, {
+            content,
+            parent: frame,
+            geometry: {
+                width: BOXSIZE
+            },
+            position: {
+                x: (idx + 0.5) * BOXSIZE,
+                y: textHeight * 0.5
+            }
+        }))
 
     return frame
 }

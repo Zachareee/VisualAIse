@@ -1,6 +1,7 @@
 import { Board, CardItem, FrameItem, MiroApi, ShapeItem, StickyNoteItem } from "@mirohq/miro-api"
-import { CardCreateRequest, FrameChanges, FrameStyle, GeometryNoRotation, Parent, PositionChange, StickyNoteCreateRequest } from "@mirohq/miro-api/dist/api.js"
+import { CardCreateRequest, FixedRatioNoRotationGeometry, FrameChanges, FrameStyle, GeometryNoRotation, Parent, PositionChange, StickyNoteCreateRequest, WidthOnlyAdjustableGeometry } from "@mirohq/miro-api/dist/api.js"
 import _ from "lodash"
+import log from './Logger.mjs'
 
 /**
  * @typedef {{card: CardItem, sticky_note: StickyNoteItem, shape: ShapeItem, frame: FrameItem}} Filters
@@ -51,8 +52,8 @@ export async function createBox(board, { size, content, position, parent }) {
             width: size
         },
         style: {
-            borderOpacity: 1,
-            fillOpacity: 1
+            borderOpacity: "1",
+            fillOpacity: "1"
         },
         position,
         parent
@@ -73,9 +74,34 @@ export async function createFrame(board, { title, bgColor: fillColor, geometry, 
         style: {
             fillColor
         },
-        geometry,
+        geometry: {
+            width: minDimensions(geometry.width),
+            height: minDimensions(geometry.height)
+        },
         position
     })
+}
+
+/**
+ * 
+ * @param {FrameItem} frame 
+ * @param { GeometryNoRotation } geometry
+ * @returns 
+ */
+export async function updateFrameGeo(frame, geometry) {
+    frame.geometry = { ...frame.geometry, ...geometry }
+    return frame.update({
+        geometry: {
+            width: minDimensions(frame.geometry.width),
+            height: minDimensions(frame.geometry.height)
+        }
+    })
+}
+/**
+ * @param {number | undefined} dim 
+ */
+function minDimensions(dim) {
+    return Math.max(dim ?? 0, 100)
 }
 
 /**
@@ -106,23 +132,38 @@ export async function createCard(board, { description, title, height, width, x, 
 /**
  * 
  * @param {Board} board
- * @param {{content: string, position: PositionChange, parent?: Parent}} param1 
+ * @param {{content: string, position: PositionChange, parent?: Parent, size?: number}} param1 
  * @returns {Promise<StickyNoteItem>}
  */
-export async function createStickyNote(board, { content, position, parent }) {
+export async function createStickyNote(board, { content, position, parent, size }) {
     return board.createStickyNoteItem({
         data: { content },
         position,
+        geometry: {
+            width: size
+        },
         parent
     })
 }
 
-export function deleteCard(miroapi, boardId, searchKey) {
-    findCardOnBoard(miroapi, boardId, searchKey).then(card => card?.delete()).catch(console.warn)
-}
-
-export function updateCard(miroapi, boardId, searchKey, data) {
-    findCardOnBoard(miroapi, boardId, searchKey).then(card => card?.update(data)).catch(console.warn)
+/**
+ * 
+ * @param {Board} board
+ * @param {{ parent: Parent, position: PositionChange, content: string, geometry: WidthOnlyAdjustableGeometry }} param1
+ */
+export async function createText(board, { content, position, parent, geometry}) {
+    return board.createTextItem({
+        data: {
+            content
+        },
+        position,
+        parent,
+        geometry,
+        style: {
+            fontSize: "30",
+            textAlign: "center"
+        }
+    })
 }
 
 export function boardIsNull(board, res) {
@@ -131,26 +172,12 @@ export function boardIsNull(board, res) {
 }
 
 /**
- * 
- * @param {MiroApi} miroapi 
- * @param {string} boardId 
- * @param {string} searchKey 
- * @param {keyof Filters} type
- * @returns 
- */
-export async function GONES(board, searchKey, type) {
-    return getBoard(miroapi, boardId).then(board => findItem(board, searchKey, type))
-}
-
-/**
  * @template {keyof Filters} T
  * @param {Board | FrameItem} board 
  * @param {T} type 
- * @returns {Promise<(Filters[T])[]>}
  */
 export async function filterItems(board, type) {
-    const filtered = await unwrapGenerator(board.getAllItems({ type }))
-    return filtered
+    return /** @type {Filters[T][]} */ (await unwrapGenerator(board.getAllItems({ type })))
 }
 
 /**

@@ -1,7 +1,7 @@
 import { Board, CardItem, FrameItem, MiroApi } from "@mirohq/miro-api";
 import { generateImage } from "./aiutils.mjs";
 // import { defaultRadius } from "./clustering.mjs";
-import { createBox, createCard, createFrame, createImage, filterItems, GONES, getBoard, strLike, updateCard } from "./miroutils.mjs";
+import { createBox, createCard, createFrame, createImage, filterItems, getBoard, strLike } from "./miroutils.mjs";
 import { Position, PositionChange } from "@mirohq/miro-api/dist/api.js";
 import _ from "lodash"
 

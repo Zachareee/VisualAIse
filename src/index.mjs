@@ -7,9 +7,7 @@ import { renderFile } from "ejs"
 // custom utils
 import Storage from "./store.mjs"
 import {
-    getBoards, getBoard, createCard,
-    deleteCard, updateCard, boardIsNull,
-    unwrapGenerator
+    getBoards, getBoard, boardIsNull
 } from "./miroutils.mjs"
 import { sortCards } from "./mirohighlevel.mjs"
 import { chat, decide } from "./aiutils.mjs"

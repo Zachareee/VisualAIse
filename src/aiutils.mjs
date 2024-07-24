@@ -1,5 +1,4 @@
 import fs from 'fs'
-import { deleteCard } from './miroutils.mjs'
 import { addCard, moveCard, renameCard } from './mirohighlevel.mjs'
 import Calendar from './pipes/Calendar.mjs'
 import Pipes from './utils/Pipes.mjs'
@@ -116,7 +115,6 @@ export function decide(miroapi, board, data, clusters, sortedCards) {
             addCard(miroapi, board, { ...data, owner: newOwner }, sortedCards)
             break
         case "removeCard":
-            deleteCard(miroapi, board, title)
             break
         case "moveCard":
             moveCard(miroapi, board, data, sortedCards)
