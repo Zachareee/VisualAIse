@@ -1,6 +1,6 @@
 import { imp } from "../aiutils.mjs";
 import _ from "lodash"
-import Pipes from "../utils/Pipes.mjs";
+import Pipes from "./Pipes.mjs";
 import State from "../utils/State.mjs";
 import VCalendar from "../visual/VCalendar.mjs";
 import log from "../Logger.mjs"
@@ -20,12 +20,13 @@ class Calendar extends Pipes {
     /**
      * 
      * @param {Board} board 
+     * @param {string} user 
      * @param {string} content 
      */
-    async start(board, content) {
+    async start(board, user, content) {
         this.output = true
 
-        await decideCalendar(board, content)
+        await decideCalendar(board, user, content)
         return this
     }
 
@@ -45,9 +46,10 @@ export default new Calendar()
 /**
  * 
  * @param {Board} board 
+ * @param {string} user 
  * @param {string} content 
  */
-async function decideCalendar(board, content) {
+async function decideCalendar(board, user, content) {
     return imp.checkCalendarDates(content).then(async result => {
         log("Calendar dates found for", content, result)
         if (!date) {
@@ -62,7 +64,7 @@ async function decideCalendar(board, content) {
                      */
                     JSONarr => {
                         log("JSON format of dates:", JSONarr)
-                        return addDatesToBoard(board, JSONarr)
+                        return addDatesToBoard(board, user, JSONarr)
                     }
                 )
     })
@@ -71,10 +73,11 @@ async function decideCalendar(board, content) {
 /**
  * 
  * @param {Board} board 
+ * @param {string} user
  * @param {Record<string, string[]>} array 
  */
-async function addDatesToBoard(board, array) {
-    await VCalendar.prepareCalendar(board, array)
+async function addDatesToBoard(board, user, array) {
+    await VCalendar.prepareCalendar(board, user, array)
     return imp.augmentCalendar(`Existing:${JSON.stringify(await state.getValue())}\nNew:${JSON.stringify(array)}`)
         .then(result => {
             log("Result of augmenting is", result)

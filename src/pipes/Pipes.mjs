@@ -4,9 +4,10 @@ export default class Pipes {
     /**
      * 
      * @param {Board} board 
+     * @param {string} user 
      * @param {string} content 
      */
-    async start(board, content) {
+    async start(board, user, content) {
         return this
     }
     /**

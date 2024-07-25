@@ -1,12 +1,18 @@
 import { Board, CardItem, FrameItem, MiroApi, ShapeItem, StickyNoteItem } from "@mirohq/miro-api"
-import { CardCreateRequest, FixedRatioNoRotationGeometry, FrameChanges, FrameStyle, GeometryNoRotation, Parent, PositionChange, StickyNoteCreateRequest, WidthOnlyAdjustableGeometry } from "@mirohq/miro-api/dist/api.js"
+import { FrameStyle, Geometry, GeometryNoRotation, Parent, PositionChange, TagCreateRequest, WidthOnlyAdjustableGeometry } from "@mirohq/miro-api/dist/api.js"
 import _ from "lodash"
 import log from './Logger.mjs'
+import { fontSize } from "./visual/Positions.mjs"
 
 /**
  * @typedef {{card: CardItem, sticky_note: StickyNoteItem, shape: ShapeItem, frame: FrameItem}} Filters
  */
 
+/**
+ * 
+ * @param {MiroApi} miroapi 
+ * @returns 
+ */
 export async function getBoards(miroapi) {
     return unwrapGenerator(miroapi.getAllBoards())
 }
@@ -89,7 +95,9 @@ export async function createFrame(board, { title, bgColor: fillColor, geometry, 
  * @returns 
  */
 export async function updateFrameGeo(frame, geometry) {
+    log("Original frame size", frame.geometry)
     frame.geometry = { ...frame.geometry, ...geometry }
+    log("New frame size", frame.geometry)
     return frame.update({
         geometry: {
             width: minDimensions(frame.geometry.width),
@@ -97,6 +105,7 @@ export async function updateFrameGeo(frame, geometry) {
         }
     })
 }
+
 /**
  * @param {number | undefined} dim 
  */
@@ -108,23 +117,17 @@ function minDimensions(dim) {
  * 
  * @param {Board} board
  * @param {Partial<Record<"description"|"title", string>>
- * & Partial<Record<"height"|"width", number>
- * & PositionChange
- * & { parent: Parent }>
+ * & { parent: Parent, geometry: Geometry, position: PositionChange }
  * } param1
  * @returns {Promise<CardItem>}
  */
-export async function createCard(board, { description, title, height, width, x, y, parent }) {
+export async function createCard(board, { description, title, geometry, position, parent }) {
     return board.createCardItem({
         data: {
             title, description
         },
-        position: {
-            x, y
-        },
-        geometry: {
-            height, width
-        },
+        position,
+        geometry,
         parent
     })
 }
@@ -151,7 +154,7 @@ export async function createStickyNote(board, { content, position, parent, size 
  * @param {Board} board
  * @param {{ parent: Parent, position: PositionChange, content: string, geometry: WidthOnlyAdjustableGeometry }} param1
  */
-export async function createText(board, { content, position, parent, geometry}) {
+export async function createText(board, { content, position, parent, geometry }) {
     return board.createTextItem({
         data: {
             content
@@ -160,10 +163,29 @@ export async function createText(board, { content, position, parent, geometry}) 
         parent,
         geometry,
         style: {
-            fontSize: "30",
+            fontSize: `${fontSize}`,
             textAlign: "center"
         }
     })
+}
+
+/**
+ * @typedef {typeof TagCreateRequest.FillColorEnum} TagColour
+ */
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {{title: string, colour?: TagColour[keyof TagColour] }} param1 
+ */
+export async function createTag(board, { title, colour }) {
+    const tags = await unwrapGenerator(board.getAllTags())
+    log(tags)
+    const foundTag = tags.find(tag => tag.title === title)
+    if (foundTag) return foundTag
+
+    const colourArr = Object.values(TagCreateRequest.FillColorEnum)
+    return board.createTag({ title, fillColor: colour ?? colourArr[Math.floor(Math.random() * colourArr.length)] })
 }
 
 export function boardIsNull(board, res) {

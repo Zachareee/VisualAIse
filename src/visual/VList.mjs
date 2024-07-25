@@ -1,5 +1,5 @@
 import { Board, CardItem, FrameItem } from "@mirohq/miro-api";
-import { createCard, createFrame, filterItems, findItem, strLike } from "../miroutils.mjs";
+import { createCard, createFrame, createTag, filterItems, findItem, strLike } from "../miroutils.mjs";
 import { CARDHEIGHT, CARDWIDTH, listPosition } from "./Positions.mjs";
 import log from "../Logger.mjs"
 
@@ -9,9 +9,10 @@ class VList {
     /**
      * 
      * @param {Board} board 
+     * @param {string} user
      * @param {string[][]} graph 
      */
-    async prepareList(board, graph) {
+    async prepareList(board, user, graph) {
         const matrix = (await findItem(board, MatrixFrameName, "frame"))
             || (await createMatrix(board))
 
@@ -20,20 +21,42 @@ class VList {
 
         await filterItems(matrix, "card").then(
             cards => Promise.all(graph.map(
-                (titleArr, row) => Promise.all(titleArr.map(
-                    async (title, column) => {
-                        const card = findAndPopCard(cards, title)
-                        if (!card) return createCard(board, { ...cardDefaults, ...calculatePosition(column, row), title, parent: matrix })
-                        return changePosition(card, { column, row })
+                async (titleArr, row) => {
+                    for (const idx in titleArr) {
+                        const column = Number(idx)
+                        const card = findAndPopCard(cards, titleArr[column])
+                        if (!card) {
+                            await addCardToMatrix(board, user, {
+                                geometry: cardDefaults,
+                                position: calculatePosition(column, row),
+                                title: titleArr[column],
+                                parent: matrix
+                            })
+                            continue
+                        }
+                        await changePosition(card, { column, row })
                     }
-                ))
+                })
             ))
-        )
         await shrinkFrame(matrix, graph)
     }
 }
 
 export default new VList()
+
+/**
+ * 
+ * @param {Board} board 
+ * @param {string} title 
+ * @param {Parameters<import('../miroutils.mjs').createCard>[1]} params 
+ */
+async function addCardToMatrix(board, title, params) {
+    return createTag(board, { title }).then(
+        ({ id }) => createCard(board, params).then(
+            card => card.attachTag(id)
+        )
+    )
+}
 
 /**
  * 

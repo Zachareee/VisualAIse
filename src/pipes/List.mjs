@@ -1,6 +1,6 @@
 import { Board } from "@mirohq/miro-api"
 import State from "../utils/State.mjs"
-import Pipes from "../utils/Pipes.mjs"
+import Pipes from "./Pipes.mjs"
 import { imp } from "../aiutils.mjs"
 import VList from "../visual/VList.mjs"
 import log from "../Logger.mjs"
@@ -15,12 +15,13 @@ class List extends Pipes {
     /**
      * 
      * @param {Board} board 
+     * @param {string} user 
      * @param {string} content 
      */
-    async start(board, content) {
+    async start(board, user, content) {
         this.output = true
 
-        await decideMatrix(board, content)
+        await decideMatrix(board, user, content)
         return this
     }
 
@@ -38,9 +39,10 @@ class List extends Pipes {
 /**
  * 
  * @param {Board} board 
+ * @param {string} user 
  * @param {string} content 
  */
-async function decideMatrix(board, content) {
+async function decideMatrix(board, user, content) {
     const newitem = JSON.parse(await imp.getCrux(content))
     const items = await convo.getValue().then(arr => [...arr, ...newitem])
     log("Convo array is currently:", items)
@@ -53,7 +55,7 @@ async function decideMatrix(board, content) {
              */
             const graph = JSON.parse(value)
             log("The graph is", graph)
-            return VList.prepareList(board, graph)
+            return VList.prepareList(board, user, graph)
         }
     )
 }

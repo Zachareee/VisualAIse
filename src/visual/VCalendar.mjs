@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
-import { createBox, createFrame, createStickyNote, createText, filterItems, findItem, updateFrameGeo } from "../miroutils.mjs"
+import { createBox, createFrame, createStickyNote, createTag, createText, filterItems, findItem, updateFrameGeo } from "../miroutils.mjs"
 import { BOXSIZE, calendarPosition, stickySizeReduction, textHeight } from "./Positions.mjs"
 import log from "../Logger.mjs"
 import { date as originalDate } from "../pipes/Calendar.mjs"
@@ -12,21 +12,22 @@ class VCalendar {
     /**
      * 
      * @param {Board} board 
+     * @param {string} user
      * @param {Record<string, string[]>} array 
      */
-    async prepareCalendar(board, array) {
+    async prepareCalendar(board, user, array) {
         const calendarframe = (await findItem(board, CalendarFrameName, "frame")) || (await createCalendar(board))
 
         let items = await getUnmodifiedItemsFromFrame(calendarframe)
         for (const [date, topic] of Object.entries(array)) {
             log("The current date is", date)
-            log("Current dates are", items.map(shape => shape.data?.content))
-            await extendFrame(calendarframe, items.map(item => Number(item.data?.content)), Number(date)).then(
+
+            await extendFrame(calendarframe, items.map(convertShapeToDate), Number(date)).then(
                 day => fillBoxes(board, calendarframe, items, date, day)
             ).then(
-                arr => items = arr.sort((item1, item2) => Number(item1.data?.content) - Number(item2.data?.content))
+                arr => items = arr.sort((item1, item2) => convertShapeToDate(item1) - convertShapeToDate(item2))
             ).then(
-                arr => addDate(board, calendarframe, {
+                arr => addDate(board, calendarframe, user, {
                     topic,
                     position: arr.find(item => item.data?.content === `${date}`)?.position
                 })
@@ -35,6 +36,13 @@ class VCalendar {
         return calendarframe
     }
 }
+
+/**
+ * 
+ * @param {ShapeItem} shape 
+ * @returns 
+ */
+const convertShapeToDate = shape => Number(shape.data?.content)
 
 /**
  * @typedef {[number | undefined, number | undefined]} Range
@@ -54,16 +62,19 @@ function getDateRange(items) {
  * 
  * @param {Board} board 
  * @param {FrameItem} parent 
+ * @param {string} title
  * @param {{ topic: string[], position?: PositionChange}} param2 
  * @returns 
  */
-async function addDate(board, parent, { topic, position }) {
-    return createStickyNote(board, {
-        parent,
-        content: topic.join('\n'),
-        position: position ?? calculatePosition(0, 0),
-        size: BOXSIZE - stickySizeReduction
-    })
+async function addDate(board, parent, title, { topic, position }) {
+    return createTag(board, { title }).then(
+        ({ id }) => createStickyNote(board, {
+            parent,
+            content: topic.join(', '),
+            position: position ?? calculatePosition(0, 0),
+            size: BOXSIZE - stickySizeReduction
+        }).then(note => note.attachTag(id))
+    )
 }
 
 /**
@@ -72,9 +83,7 @@ async function addDate(board, parent, { topic, position }) {
  * @param {number} startDay 
  * @returns 
  */
-function rowFormula(date, startDay) {
-    return Math.floor((date + startDay - 1) / 7)
-}
+const rowFormula = (date, startDay) => Math.floor((date + startDay - 1) / 7)
 
 /**
  * 
@@ -85,7 +94,7 @@ function rowFormula(date, startDay) {
  * @param {number} startDay
  */
 async function fillBoxes(board, parent, items, date, startDay) {
-    const dates = items.map(shape => Number(shape.data?.content))
+    const dates = items.map(convertShapeToDate)
     /**
      * @type {Promise<ShapeItem>[]}
      */
@@ -160,7 +169,7 @@ async function extendFrame(frame, items, newDate) {
     rows.sort((a, b) => a - b)
 
     const first = rows[0], last = rows[rows.length - 1]
-    await increaseFrameHeight(frame, row < first ? first - row : row - last)
+    await increaseFrameHeight(frame, (row < first ? first - row : row - last) || 0)
     if (row < first) await downShiftAll(frame, first - row)
     return day
 }

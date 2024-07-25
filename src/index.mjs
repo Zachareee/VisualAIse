@@ -9,13 +9,8 @@ import Storage from "./store.mjs"
 import {
     getBoards, getBoard, boardIsNull
 } from "./miroutils.mjs"
-import { sortCards } from "./mirohighlevel.mjs"
-import { chat, decide } from "./aiutils.mjs"
-// import MiroBrowser from "./puppet.mjs"
-// import { findClusters } from "./clustering.mjs"
-import Pipes from "./utils/Pipes.mjs"
-import VList from "./visual/VList.mjs"
-import VCalendar from "./visual/VCalendar.mjs"
+import { chat } from "./aiutils.mjs"
+import Pipes from "./pipes/Pipes.mjs"
 import log from "./Logger.mjs"
 
 // Variables
@@ -34,6 +29,7 @@ app.use(express.static(STATIC))
 
 // Route declarations
 app.get("/", async (req, res) => {
+    /** @type {{ cookies: { session: string }, query: any }} */
     const { cookies: { session }, query: { user } } = req
 
     // make sure user is authed or trying to auth
@@ -48,6 +44,7 @@ app.get("/", async (req, res) => {
 })
 
 app.get("/auth", async (req, res) => {
+    /** @type {any} */
     const { state: user } = req.query
     miro.handleAuthorizationCodeRequest(user, req)
     res.cookie("session", user)
@@ -71,6 +68,7 @@ app.get("/boards", async (req, res) => {
 })
 
 app.get("/board", async (req, res) => {
+    /** @type {{ cookies: { session: string }, query: any }} */
     const { cookies: { session }, query: { board } } = req
     if (boardIsNull(board, res)) return
 
@@ -82,17 +80,19 @@ app.get("/stt", async (req, res) => {
 })
 
 app.post("/chat", async (req, res) => {
-    const { cookies: { session }, body: { content }, query: { board } } = req
+    /** @type {{ cookies: { session: string }, body: { content: string }, query: any }} */
+    const { cookies: { session: user }, body: { content }, query: { board } } = req
     if (boardIsNull(board, res)) return
 
     log("Message received:", content)
-    await getBoard(miro.as(session), board).then(async board =>
-        chat(board, content)
+    await getBoard(miro.as(user), board).then(async board =>
+        chat(board, user, content)
     )
     return res.send("ok")
 })
 
 app.post("/chats", async (req, res) => {
+    /** @type {{ cookies: { session: string }, body: Record<string, string>[], query: any }} */
     const { cookies: { session }, body: content, query: { board } } = req
     if (boardIsNull(board, res)) return
     log("Convo is", content)
@@ -102,36 +102,14 @@ app.post("/chats", async (req, res) => {
      */
     const pipes = []
     getBoard(miro.as(session), board).then(async board => {
-        for (const text of content)
-            pipes.push(...await chat(board, text))
+        for (const text of content) {
+            const arr = Object.entries(text)[0]
+            pipes.push(...await chat(board, arr[0], arr[1]))
+        }
         res.send((await Promise.all(pipes.map(e => e.finish()))).filter(value => value))
         console.log("End conversation")
     })
 
-})
-
-app.post("/list", async (req, res) => {
-    const { query: { board }, body, cookies: { session } } = req
-
-    VList.prepareList(await getBoard(miro.as(session), board), body.content, 1)
-    res.send("ok")
-})
-
-app.post("/calendar", async (req, res) => {
-    const { query: { board }, body, cookies: { session } } = req
-
-    VCalendar.prepareCalendar(await getBoard(miro.as(session), board), body)
-    res.send("ok")
-})
-
-app.post("/decide", async (req, res) => {
-    const { query: { board }, body, cookies: { session } } = req
-    if (boardIsNull(board, res)) return
-
-    res.send("ok")
-    const miroapi = miro.as(session)
-    const sortedCards = await sortCards(miroapi, board)
-    body.forEach(obj => decide(miroapi, board, obj, sortedCards))
 })
 
 app.listen(PORT, () => {
