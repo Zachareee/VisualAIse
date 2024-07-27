@@ -1,7 +1,7 @@
-import { imp } from "../aiutils.mjs";
+import { imp } from "../AIutils.mjs";
 import _ from "lodash"
 import Pipes from "./Pipes.mjs";
-import State from "../utils/State.mjs";
+import State from "../State.mjs";
 import VCalendar from "../visual/VCalendar.mjs";
 import log from "../Logger.mjs"
 import { Board } from "@mirohq/miro-api";

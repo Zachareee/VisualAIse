@@ -5,11 +5,11 @@ import { resolve } from "path"
 import { renderFile } from "ejs"
 
 // custom utils
-import Storage from "./store.mjs"
+import Storage from "./Storage.mjs"
 import {
     getBoards, getBoard, boardIsNull
 } from "./miroutils.mjs"
-import { chat } from "./aiutils.mjs"
+import { chat } from "./AIutils.mjs"
 import Pipes from "./pipes/Pipes.mjs"
 import log from "./Logger.mjs"
 

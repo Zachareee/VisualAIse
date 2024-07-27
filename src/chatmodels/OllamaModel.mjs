@@ -15,7 +15,7 @@ class OllamaModel extends ChatModel {
 
     /**
      * 
-     * @param {import('../aiutils.mjs').SYSTEMSTRUCT} system 
+     * @param {import('../AIutils.mjs').SYSTEMSTRUCT} system 
      * @returns {(content: string) => Promise<string>}
      */
     createModel({prompt, temperature}) {
