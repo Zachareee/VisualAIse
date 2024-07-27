@@ -24,11 +24,21 @@ app.use(express.json())
 app.engine("html", renderFile)
 
 const STATIC = `${resolve()}/static`
+
+/**
+ * 
+ * @param {string} file 
+ * @returns 
+ */
 const getStaticFile = file => `${STATIC}/${file}`
 app.use(express.static(STATIC))
 
 // Route declarations
-app.get("/", async (req, res) => {
+app.get("/", async (_, res) => {
+    return res.sendFile(getStaticFile("login.html"))
+})
+
+app.get("/home", async (req, res) => {
     /** @type {{ cookies: { session: string }, query: any }} */
     const { cookies: { session }, query: { user } } = req
 
@@ -37,7 +47,7 @@ app.get("/", async (req, res) => {
         return res.status(401).send("Missing user param")
 
     // retrieve token and store with provided user name
-    if (!await miro.isAuthorized(session))
+    if (!await isAuthorized(session))
         return res.render(getStaticFile("unauth.html"), { link: miro.getAuthUrl(user) })
 
     return res.sendFile(getStaticFile("boards.html"))
@@ -49,16 +59,16 @@ app.get("/auth", async (req, res) => {
     miro.handleAuthorizationCodeRequest(user, req)
     res.cookie("session", user)
 
-    return res.redirect("/")
+    return res.redirect("/home")
 })
 
+// authorises all requests
 // mounted after "/" to avoid infinite redirects
 // after "/auth" to avoid intercepting auth code
-// after "/ss" which shouldn't need user creds
 app.use(async (req, res, next) => {
     const { session } = req.cookies
 
-    if (await miro.isAuthorized(session)) return next()
+    if (await isAuthorized(session)) return next()
     return res.redirect("/")
 })
 
@@ -75,7 +85,7 @@ app.get("/board", async (req, res) => {
     return res.send(await getBoard(miro.as(session), board))
 })
 
-app.get("/stt", async (req, res) => {
+app.get("/stt", async (_, res) => {
     return res.sendFile(getStaticFile("stt.html"))
 })
 
@@ -111,6 +121,15 @@ app.post("/chats", async (req, res) => {
     })
 
 })
+
+/**
+ * 
+ * @param {string} session 
+ * @returns 
+ */
+async function isAuthorized(session) {
+    return miro.as(session).tokenInfo().catch(() => false)
+}
 
 app.listen(PORT, () => {
     console.log("Listening on port", PORT)
