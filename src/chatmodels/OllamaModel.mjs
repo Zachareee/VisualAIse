@@ -7,7 +7,7 @@ import ChatModel from './ChatModel.mjs'
 class OllamaModel extends ChatModel {
     constructor() {
         super()
-        this.ollama = new Ollama({ host: process.env.host })
+        this.ollama = new Ollama({ host: process.env.OLLAMA_HOST })
     }
 
     /**

@@ -34,7 +34,11 @@ export default class State {
      */
     async getValue() {
         if (this.lockState) {
-            const { promise, resolve } = Promise.withResolvers()
+            /**
+             * @type {(value: T) => void}
+             */
+            let resolve = v => { throw new Error("Failed to get promise resolver") }
+            const promise = new Promise(res => resolve = res)
             this.resolves.push(resolve)
             return promise
         }
