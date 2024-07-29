@@ -14,7 +14,7 @@ export default class State {
          */
         this.value = init
         /**
-         * @type {((value: T | PromiseLike<T>) => void)[]}
+         * @type {((value: T) => void)[]}
          */
         this.resolves = []
     }
@@ -49,8 +49,4 @@ export default class State {
         this.value = await value
         this.unlock()
     }
-}
-
-const Events = {
-    UNLOCK: "unlocked"
 }

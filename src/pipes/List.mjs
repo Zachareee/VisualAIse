@@ -1,7 +1,7 @@
 import { Board } from "@mirohq/miro-api"
 import State from "../State.mjs"
 import Pipes from "./Pipes.mjs"
-import { imp } from "../AIutils.mjs"
+import imp from "../chatmodels/Implementation.mjs"
 import VList from "../visual/VList.mjs"
 import log from "../Logger.mjs"
 

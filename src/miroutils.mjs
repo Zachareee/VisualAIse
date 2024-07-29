@@ -27,19 +27,6 @@ export async function getBoard(miroapi, boardId) {
     return miroapi.getBoard(boardId)
 }
 
-/**
- * 
- * @param {import("@mirohq/miro-api/dist/highlevel/Item").WidgetItem[]} board 
- * @param {import("@mirohq/miro-api/dist/highlevel/Item").WidgetItem} item 
- * @returns 
- */
-export function boardContainsItem(board, item) {
-    for (const widgetitem of board) {
-        if (_.isEqual(widgetitem, item)) return true
-    }
-    return false
-}
-
 export async function createImage(miroapi, boardId, url) {
     return getBoard(miroapi, boardId).then(board => board.createImageItem({ data: { url } })).catch(console.warn)
 }
@@ -188,11 +175,6 @@ export async function createTag(board, { title, colour }) {
     return board.createTag({ title, fillColor: colour ?? colourArr[Math.floor(Math.random() * colourArr.length)] })
 }
 
-export function boardIsNull(board, res) {
-    if (!board) res.status(401).send("Query parameter \"board\" is missing")
-    return !board
-}
-
 /**
  * @template {keyof Filters} T
  * @param {Board | FrameItem} board 
@@ -229,7 +211,7 @@ export async function findItem(board, searchKey, type) {
  * 
  * @param {keyof Filters} type 
  */
-export function findText(type) {
+function findText(type) {
     switch (type) {
         case "frame":
         case "card":
@@ -245,7 +227,7 @@ export function findText(type) {
  * @template T
  * @param {AsyncGenerator<T, void, unknown>} generator 
  */
-export async function unwrapGenerator(generator) {
+async function unwrapGenerator(generator) {
     const ls = []
     for await (const val of generator) {
         ls.push(val)

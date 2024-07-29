@@ -1,6 +1,6 @@
 import { Board, CardItem, FrameItem } from "@mirohq/miro-api";
 import { createCard, createFrame, createTag, filterItems, findItem, strLike } from "../miroutils.mjs";
-import { CARDHEIGHT, CARDWIDTH, listPosition } from "./Positions.mjs";
+import { CARDHEIGHT, CARDWIDTH, coordinateCalculator, listPosition } from "./Positions.mjs";
 import log from "../Logger.mjs"
 
 const MatrixFrameName = "Matrix"
@@ -21,20 +21,20 @@ class VList {
 
         await filterItems(matrix, "card").then(
             cards => Promise.all(graph.map(
-                async (titleArr, row) => {
+                async (titleArr, x) => {
                     for (const idx in titleArr) {
-                        const column = Number(idx)
-                        const card = findAndPopCard(cards, titleArr[column])
+                        const y = Number(idx)
+                        const card = findAndPopCard(cards, titleArr[y])
                         if (!card) {
                             await addCardToMatrix(board, user, {
                                 geometry: cardDefaults,
-                                position: calculatePosition(column, row),
-                                title: titleArr[column],
+                                position: calculatePosition(x, y),
+                                title: titleArr[y],
                                 parent: matrix
                             })
                             continue
                         }
-                        await changePosition(card, { column, row })
+                        await changePosition(card, { x, y })
                     }
                 })
             ))
@@ -115,19 +115,12 @@ async function createMatrix(board) {
 /**
  * 
  * @param {CardItem} card 
- * @param {Record<"column"|"row", number>} param1
+ * @param {Record<"x"|"y", number>} param1
  */
-async function changePosition(card, { column, row }) {
-    return card.update({ position: calculatePosition(column, row) })
+async function changePosition(card, { x, y }) {
+    return card.update({ position: calculatePosition(x, y) })
 }
 
-/**
- * 
- * @param {number} column 
- * @param {number} row 
- */
-function calculatePosition(column, row) {
-    return { x: CARDWIDTH * (row + 0.5), y: CARDHEIGHT * (column + 0.5) }
-}
+const calculatePosition = coordinateCalculator({height: CARDHEIGHT, width: CARDWIDTH})
 
 const cardDefaults = { width: CARDWIDTH, height: CARDHEIGHT }

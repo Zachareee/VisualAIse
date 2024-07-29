@@ -1,16 +1,44 @@
 [
-    "Hey, have you heard about the idea of eating an apple every day?",
-    "Yeah, I've heard it's supposed to be really good for you. Keeps the doctor away, right?",
-    "That's the saying! Apparently, apples are packed with nutrients and fiber, good for digestion and overall health.",
-    "True, they're convenient too. Easy to carry around and snack on.",
-    "Plus, they're low in calories, so they can help with weight management.",
-    "But aren't there cons too? Like the sugar content?",
-    "Yeah, apples do have natural sugars, so if you're watching your sugar intake, you might need to moderate.",
-    "And what about pesticides? I've heard they're one of the most heavily sprayed fruits.",
-    "That's a concern. Buying organic could help reduce pesticide exposure.",
-    "Also, some people might find them boring to eat every day.",
-    "That's fair. Variety is important for a balanced diet.",
-    "But overall, it sounds like the pros outweigh the cons, as long as you're mindful about pesticides and sugar.",
-    "Definitely. It's a simple, nutritious snack that can be part of a healthy diet.",
-    "Alright, maybe I'll start keeping an apple around more often."
+    {
+        "Alex": "Hey, have you heard about the idea of eating an apple every day?"
+    },
+    {
+        "Bob": "Yeah, I've heard it's supposed to be really good for you. Keeps the doctor away, right?"
+    },
+    {
+        "Alex": "That's the saying! Apparently, apples are packed with nutrients and fiber, good for digestion and overall health."
+    },
+    {
+        "Bob": "True, they're convenient too. Easy to carry around and snack on."
+    },
+    {
+        "Alex": "Plus, they're low in calories, so they can help with weight management."
+    },
+    {
+        "Bob": "But aren't there cons too? Like the sugar content?"
+    },
+    {
+        "Alex": "Yeah, apples do have natural sugars, so if you're watching your sugar intake, you might need to moderate."
+    },
+    {
+        "Bob": "And what about pesticides? I've heard they're one of the most heavily sprayed fruits."
+    },
+    {
+        "Alex": "That's a concern. Buying organic could help reduce pesticide exposure."
+    },
+    {
+        "Bob": "Also, some people might find them boring to eat every day."
+    },
+    {
+        "Alex": "That's fair. Variety is important for a balanced diet."
+    },
+    {
+        "Bob": "But overall, it sounds like the pros outweigh the cons, as long as you're mindful about pesticides and sugar."
+    },
+    {
+        "Alex": "Definitely. It's a simple, nutritious snack that can be part of a healthy diet."
+    },
+    {
+        "Bob": "Alright, maybe I'll start keeping an apple around more often."
+    }
 ]

@@ -1,26 +1,23 @@
 import { Ollama } from 'ollama'
 import ChatModel from './ChatModel.mjs'
 
-const { host } = process.env
-const model = "codellama:7b"
-
 /**
  * @property {Ollama} ollama
  */
 class OllamaModel extends ChatModel {
     constructor() {
         super()
-        this.ollama = new Ollama({ host })
+        this.ollama = new Ollama({ host: process.env.host })
     }
 
     /**
      * 
-     * @param {import('../AIutils.mjs').SYSTEMSTRUCT} system 
+     * @param {import('./Implementation.mjs').SYSTEMSTRUCT} system 
      * @returns {(content: string) => Promise<string>}
      */
     createModel({prompt, temperature}) {
         return content => this.ollama.chat({
-            model,
+            model: "codellama:7b",
             messages: [{ role: "system", content: prompt }, { role: "user", content: `#INPUT\n${content}\n#OUTPUT` }],
             options: {
                 temperature

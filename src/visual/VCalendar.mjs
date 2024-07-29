@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { Board, FrameItem, ShapeItem } from "@mirohq/miro-api"
 import { createBox, createFrame, createStickyNote, createTag, createText, filterItems, findItem, updateFrameGeo } from "../miroutils.mjs"
-import { BOXSIZE, calendarPosition, stickySizeReduction, textHeight } from "./Positions.mjs"
+import { BOXSIZE, calendarPosition, coordinateCalculator, stickySizeReduction, textHeight } from "./Positions.mjs"
 import log from "../Logger.mjs"
 import { date as originalDate } from "../pipes/Calendar.mjs"
 import { PositionChange } from "@mirohq/miro-api/dist/api.js"
@@ -251,13 +251,15 @@ async function createCalendar(board) {
     return frame
 }
 
-/**
- * 
- * @param {number} y 
- * @param {number} x 
- */
-function calculatePosition(x, y) {
-    return { x: BOXSIZE * (x + 0.5), y: textHeight + BOXSIZE * (y + 0.5) }
-}
+const calculatePosition = coordinateCalculator({height: BOXSIZE, width: BOXSIZE, yOffset: textHeight})
+
+// /**
+//  * 
+//  * @param {number} y 
+//  * @param {number} x 
+//  */
+// function calculatePosition(x, y) {
+//     return { x: BOXSIZE * (x + 0.5), y: textHeight + BOXSIZE * (y + 0.5) }
+// }
 
 export default new VCalendar()

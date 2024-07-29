@@ -6,9 +6,7 @@ import { renderFile } from "ejs"
 
 // custom utils
 import Storage from "./Storage.mjs"
-import {
-    getBoards, getBoard, boardIsNull
-} from "./miroutils.mjs"
+import { getBoards, getBoard } from "./miroutils.mjs"
 import { chat } from "./AIutils.mjs"
 import Pipes from "./pipes/Pipes.mjs"
 import log from "./Logger.mjs"
@@ -16,7 +14,7 @@ import log from "./Logger.mjs"
 // Variables
 const PORT = process.env.port || 3000
 
-const miro = new Miro({ storage: new Storage() })
+const miro = new Miro({ storage: new Storage(), redirectUrl: "http://localhost:3000/auth" })
 const app = express()
 
 app.use(cookieParser())
@@ -42,13 +40,14 @@ app.get("/home", async (req, res) => {
     /** @type {{ cookies: { session: string }, query: any }} */
     const { cookies: { session }, query: { user } } = req
 
-    // make sure user is authed or trying to auth
-    if (!(session || user))
-        return res.status(401).send("Missing user param")
+    if (!session)
+        res.cookie('session', user)
+
+    const username = user || session
 
     // retrieve token and store with provided user name
-    if (!await isAuthorized(session))
-        return res.render(getStaticFile("unauth.html"), { link: miro.getAuthUrl(user) })
+    if (!await isAuthorized(username))
+        return res.render(getStaticFile("unauth.html"), { link: miro.getAuthUrl(username) })
 
     return res.sendFile(getStaticFile("boards.html"))
 })
@@ -128,9 +127,14 @@ app.post("/chats", async (req, res) => {
  * @returns 
  */
 async function isAuthorized(session) {
-    return miro.as(session).tokenInfo().catch(() => false)
+    return await miro.isAuthorized(session) && miro.as(session).tokenInfo().catch(() => false)
 }
 
 app.listen(PORT, () => {
-    console.log("Listening on port", PORT)
+    console.log(`Server started on http://localhost:${PORT}`)
 })
+
+function boardIsNull(board, res) {
+    if (!board) res.status(401).send("Query parameter \"board\" is missing")
+    return !board
+}

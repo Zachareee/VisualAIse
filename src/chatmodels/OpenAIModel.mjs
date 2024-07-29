@@ -9,7 +9,7 @@ class OpenAIModel extends ChatModel {
 
     /**
      * 
-     * @param {import('../AIutils.mjs').SYSTEMSTRUCT} system 
+     * @param {import('./Implementation.mjs').SYSTEMSTRUCT} system 
      * @returns {(content: string) => Promise<string>}
      */
     createModel({prompt, temperature}) {
