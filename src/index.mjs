@@ -118,7 +118,6 @@ app.post("/chats", async (req, res) => {
         res.send((await Promise.all(pipes.map(e => e.finish()))).filter(value => value))
         console.log("End conversation")
     })
-
 })
 
 /**

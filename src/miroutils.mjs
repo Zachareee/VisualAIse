@@ -32,6 +32,29 @@ export async function createImage(miroapi, boardId, url) {
 }
 
 /**
+ * 
+ * @param {Board} board 
+ * @param {Object} param1 
+ * @param {number} param1.size 
+ * @param {PositionChange} param1.position 
+ */
+export async function createCircle(board, { size, position }) {
+    return board.createShapeItem({
+        data: {
+            shape: 'circle'
+        },
+        geometry: {
+            height: size,
+            width: size
+        },
+        style: {
+            fillColor: "#93d275"
+        },
+        position
+    })
+}
+
+/**
  * @param {Board} board
  * @param {{size: number, content: string, position: PositionChange, parent: Parent}} param2 
  */
@@ -139,7 +162,7 @@ export async function createStickyNote(board, { content, position, parent, size 
 /**
  * 
  * @param {Board} board
- * @param {{ parent: Parent, position: PositionChange, content: string, geometry: WidthOnlyAdjustableGeometry }} param1
+ * @param {{ parent?: Parent, position: PositionChange, content: string, geometry?: WidthOnlyAdjustableGeometry }} param1
  */
 export async function createText(board, { content, position, parent, geometry }) {
     return board.createTextItem({
@@ -205,6 +228,17 @@ export function strLike(regex, test) {
 export async function findItem(board, searchKey, type) {
     const textLocation = findText(type)
     return (await filterItems(board, type)).find(item => strLike(searchKey, item.data?.[textLocation]))
+}
+
+/**
+ * 
+ * @param {Record<'x'|'y', number>} center 
+ * @param {number} radius 
+ */
+export function randomPlaceInCircle({ x, y }, radius) {
+    const angle = Math.floor(Math.random() * 360)
+    radius *= Math.random()
+    return { x: x + radius * Math.sin(angle), y: y + radius * Math.cos(angle) }
 }
 
 /**
