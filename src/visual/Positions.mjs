@@ -2,6 +2,12 @@ import { PositionChange } from "@mirohq/miro-api/dist/api.js";
 
 export const BOXSIZE = 150
 export const CARDWIDTH = 320, CARDHEIGHT = 60
+export const CIRCLERADIUS = 500
+
+/**
+ * @type {Required<PositionChange>}
+ */
+export const circlePosition = { x: 0, y: 0 }
 
 /**
  * @type {PositionChange}

@@ -2,6 +2,7 @@ import { Board } from "@mirohq/miro-api"
 import Pipes from "./Pipes.mjs"
 import Calendar from "./Calendar.mjs"
 import List from "./List.mjs"
+import VVenn from "../visual/VVenn.mjs"
 
 export const CONVOTYPES = {
     CALENDAR: "calendar",
@@ -14,7 +15,8 @@ export const CONVOTYPES = {
  */
 const pipeMapping = {
     [CONVOTYPES.CALENDAR]: Calendar,
-    [CONVOTYPES.LIST]: List
+    [CONVOTYPES.LIST]: List,
+    [CONVOTYPES.UNDETERMINED]: VVenn
 }
 
 /**
