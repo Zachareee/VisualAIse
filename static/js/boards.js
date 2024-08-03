@@ -1,8 +1,10 @@
 const list = document.getElementById("boardslist")
 
-fetch("/boards").then(res => res.json()).then(addToDiv).catch(console.error)
+fetch("/boards").then(res => res.json()).then(addToDiv).catch(() => list.innerHTML = "Something went wrong, please restart the server")
 
 function addToDiv(res) {
+    if (!res.length) return list.innerHTML = "There were no boards found on this team"
+    list.innerHTML = ""
     for (obj of res) {
         const { name, picture: { imageURL }, id } = obj
         const div = document.createElement("div")

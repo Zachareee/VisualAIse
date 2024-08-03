@@ -3,17 +3,21 @@
 
 <head>
     <title>Login here</title>
-    <script src="https://unpkg.com/htmx.org@2.0.1/dist/htmx.js"
-        integrity="sha384-gpIh5aLQ0qmX8kZdyhsd6jA24uKLkqIr1WAGtantR4KsS97l/NRBvh8/8OYGThAf"
-        crossorigin="anonymous"></script>
+    <script src="js/htmx.min.js"></script>
 </head>
 
 <body>
-    <h1>Enter your username here</h1>
+    <h1>Enter your username here
+        (Pick any username you like)
+    </h1>
     <input id="username" hx-on:keydown="event.key==='Enter'&&document.querySelector('#login').click()" />
     <button id="login" hx-on:click="window.location = `/home?user=${document.querySelector('#username').value}`">
         Login
     </button>
+    <div hx-trigger="load" hx-get="/users" hx-target="#users">
+        <h2>Available users in token database</h2>
+        <div id="users"></div>
+    </div>
 </body>
 
 </html>

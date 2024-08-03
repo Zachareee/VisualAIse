@@ -1,21 +1,19 @@
 import { LowSync } from "lowdb";
 import { JSONFileSync } from "lowdb/node";
 
-export default class Storage {
-    constructor() {
-        this.db = new LowSync(
-            /** @type {JSONFileSync<any>} */ (new JSONFileSync(process.env.TOKEN_STORE || "tokendb.json")), {}
-        )
-        this.db.read()
-    }
+const db = new LowSync(
+            /** @type {JSONFileSync<any>} */(new JSONFileSync(process.env.TOKEN_STORE || "tokendb.json")), {}
+)
+db.read()
 
+export default class Storage {
     /**
      * 
      * @param {string} userId 
      */
-    get(userId) {
-        this.db.read()
-        return this.db.data?.[userId]
+    static get(userId) {
+        db.read()
+        return db.data?.[userId]
     }
 
     /**
@@ -23,9 +21,14 @@ export default class Storage {
      * @param {string} userId 
      * @param {import("@mirohq/miro-api/dist/storage").State | undefined} state 
      */
-    async set(userId, state) {
-        this.db.update(data => {
+    static async set(userId, state) {
+        db.update(data => {
             data[userId] = state
         })
+    }
+
+    static getAllUsers() {
+        db.read()
+        return Object.keys(db.data)
     }
 }

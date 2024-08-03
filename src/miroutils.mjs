@@ -190,7 +190,6 @@ export async function createText(board, { content, position, parent, geometry })
  */
 export async function createTag(board, { title, colour }) {
     const tags = await unwrapGenerator(board.getAllTags())
-    log(tags)
     const foundTag = tags.find(tag => tag.title === title)
     if (foundTag) return foundTag
 

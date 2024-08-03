@@ -7,11 +7,12 @@ const board = params.get("board")
 fetch(`/board?board=${board}`).then(res => res.json()).then(data => {
     title.innerHTML = data.name
     thumbnail.src = data.picture.imageURL
-}).catch(console.error)
+}).catch(showError)
 
 const startButton = document.getElementById('startButton');
 const endButton = document.getElementById('endButton');
 const outputDiv = document.getElementById('output');
+let error = false
 
 try {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition)();
@@ -29,7 +30,8 @@ function initListeners(recognition) {
         startButton.textContent = 'Listening...';
     };
 
-    recognition.onresult = (event) => {
+    recognition.onresult = event => {
+        if (error) return recognition.abort()
         displayTranscript(event)
         sendSentence(event)
     };
@@ -87,7 +89,12 @@ async function start() {
             body: JSON.stringify({
                 content: sendArr.shift()
             })
-        }).catch(console.error)
+        }).catch(showError)
     }
     started = false
+}
+
+function showError() {
+    outputDiv.innerHTML = "An error occured, please check the terminal for details"
+    error = true
 }

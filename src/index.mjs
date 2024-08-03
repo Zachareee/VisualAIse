@@ -14,7 +14,7 @@ import log from "./Logger.mjs"
 // Variables
 const PORT = process.env.port || 3000
 
-const miro = new Miro({ storage: new Storage(), redirectUrl: "http://localhost:3000/auth" })
+const miro = new Miro({ storage: Storage, redirectUrl: `http://localhost:${PORT}/auth` })
 const app = express()
 
 app.use(cookieParser())
@@ -34,6 +34,11 @@ app.use(express.static(STATIC))
 // Route declarations
 app.get("/", async (_, res) => {
     return res.sendFile(getStaticFile("login.html"))
+})
+
+app.get("/users", async (_, res) => {
+    const arr = Storage.getAllUsers()
+    return res.send(arr.length ? arr.map(user => `<a href="/home?user=${user}">${user}</a>`).join("\n") : "There are no users")
 })
 
 app.get("/home", async (req, res) => {
