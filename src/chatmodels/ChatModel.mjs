@@ -1,7 +1,7 @@
 class ChatModel {
     /**
      * 
-     * @param {import("../AIutils.mjs").SYSTEMSTRUCT} system 
+     * @param {import("./Implementation.mjs").SYSTEMSTRUCT} system
      * @returns {(content: string) => Promise<string>}
      */
     createModel(system) {
