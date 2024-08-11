@@ -1,6 +1,9 @@
 import OpenAI from 'openai'
 import ChatModel from './ChatModel.mjs'
 
+/**
+ * The OpenAI ChatModel implementation
+ */
 class OpenAIModel extends ChatModel {
     constructor() {
         super()

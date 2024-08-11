@@ -1,3 +1,6 @@
+/**
+ * A super class specifying what methods to override when adding a new ChatModel
+ */
 class ChatModel {
     /**
      * 

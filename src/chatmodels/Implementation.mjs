@@ -6,9 +6,19 @@ import fs from "fs"
 const { IMPLEMENTATION } = process.env
 
 /**
- * @typedef {"constructCard" | "findCategories" | "checkCalendarDates" |
+ * @type {Record<string, typeof ChatModel>}
+ */
+const modelSelector = {
+    ollama: OllamaModel,
+    openai: OpenAIModel
+}
+
+/**
+ * @typedef { |
+ * "constructCard" | "findCategories" | "checkCalendarDates" |
  * "createJSONDates" | "listOthers" | "conversationType" | "getMonth" |
- * "augmentCalendar" | "getCrux" | "classifyItemsAsMatrix"} IMPLEMENTATION
+ * "augmentCalendar" | "getCrux" | "classifyItemsAsMatrix"
+ * } IMPLEMENTATION
  */
 
 /**
@@ -22,28 +32,21 @@ const { IMPLEMENTATION } = process.env
 const system = JSON.parse(fs.readFileSync("Prompts.json", "ascii"))
 
 /**
- * @type {Record<Exclude<IMPLEMENTATION, "conversationType">, (message: string) => Promise<string>>
- * & {conversationType: (message: string) => Promise<keyof typeof import("../pipes/PipelineSelector.mjs").CONVOTYPES>}}
+ * Creates an object using the prompt identifiers as function names
+ * @type {Record<Exclude<IMPLEMENTATION, "conversationType">, (message: string) => Promise<string>> & {conversationType: (message: string) => Promise<keyof typeof import("../pipes/PipelineSelector.mjs").CONVOTYPES>}}
  */
 export default (() => {
-    /**
-     * @type {ChatModel}
-     */
-    const model = (() => {
-        switch (IMPLEMENTATION) {
-            case "ollama":
-                return new OllamaModel()
-            case "openai":
-                return new OpenAIModel()
-            default:
-                throw new Error("AI model not set")
-        }
-    })()
+    if (!IMPLEMENTATION) throw new Error("AI model not set")
 
+    try {
+        const model = new modelSelector[IMPLEMENTATION]()
 
-    return /** @type {*} */ (Object.fromEntries(
-        Object.entries(system).map(
-            ([key, struct]) => [key, model.createModel(struct)]
-        )
-    ))
+        return /** @type {*} */ (Object.fromEntries(
+            Object.entries(system).map(
+                ([key, struct]) => [key, model.createModel(struct)]
+            )
+        ))
+    } catch {
+        throw new Error("Invalid AI model")
+    }
 })()

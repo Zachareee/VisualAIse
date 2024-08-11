@@ -9,8 +9,14 @@ import log from "../Logger.mjs"
  * @type {string[]}
  */
 const originalConvoState = []
+/**
+ * A in-memory state for the pipeline to catch prior processed messages
+ */
 const convo = new State(originalConvoState)
 
+/**
+ * The list pipeline which encapsulates most of the processing logic
+ */
 class List extends Pipes {
     /**
      * 

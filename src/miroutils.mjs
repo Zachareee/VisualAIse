@@ -79,7 +79,7 @@ export async function createBox(board, { size, content, position, parent }) {
 /**
  * 
  * @param {Board} board 
- * @param {{title: string, bgColor: FrameStyle["fillColor"], geometry: GeometryNoRotation, position: PositionChange}} param1 
+ * @param {{title: string, bgColor: FrameStyle["fillColor"], geometry?: GeometryNoRotation, position: PositionChange}} param1 
  * @returns 
  */
 export async function createFrame(board, { title, bgColor: fillColor, geometry, position }) {
@@ -91,8 +91,8 @@ export async function createFrame(board, { title, bgColor: fillColor, geometry, 
             fillColor
         },
         geometry: {
-            width: minDimensions(geometry.width),
-            height: minDimensions(geometry.height)
+            width: minDimensions(geometry?.width),
+            height: minDimensions(geometry?.height)
         },
         position
     })

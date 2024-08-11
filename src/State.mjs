@@ -1,6 +1,7 @@
 import _ from "lodash"
 
 /**
+ * An in-memory temporary storage for pipelines to store state
  * @template T
  */
 export default class State {
@@ -19,11 +20,11 @@ export default class State {
         this.resolves = []
     }
 
-    lock() {
+    #lock() {
         this.lockState = true
     }
 
-    unlock() {
+    #unlock() {
         this.lockState = false
         this.resolves.shift()?.(this.value)
     }
@@ -49,8 +50,8 @@ export default class State {
      * @param {Promise<T> | T} value 
      */
     async setValue(value) {
-        this.lock()
+        this.#lock()
         this.value = await value
-        this.unlock()
+        this.#unlock()
     }
 }

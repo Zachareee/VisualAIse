@@ -3,6 +3,9 @@ import Pipes from "./Pipes.mjs"
 import Calendar from "./Calendar.mjs"
 import List from "./List.mjs"
 
+/**
+ * A listing of visualisation models based on the conversationType in Prompts.json
+ */
 export const CONVOTYPES = {
     CALENDAR: "calendar",
     LIST: "list",
@@ -10,6 +13,7 @@ export const CONVOTYPES = {
 }
 
 /**
+ * Mapping of {@link CONVOTYPES} to {@link Pipes}
  * @type {Partial<Record<keyof typeof CONVOTYPES, Pipes>>}
  */
 const pipeMapping = {
@@ -18,7 +22,7 @@ const pipeMapping = {
 }
 
 /**
- * 
+ * Logic to select the pipe to be used, comment out the first line to allow fallthrough logic
  * @param {Board} board 
  * @param {keyof typeof CONVOTYPES} type 
  * @param {string} user 
@@ -27,13 +31,9 @@ const pipeMapping = {
  */
 async function selectPipe(board, type, user, content) {
     return [await pipeMapping[type]?.start(board, user, content) || new Pipes()]
-    /**
-     * @type {Pipes[]}
-     */
-    const arr = []
-    arr.push(await Calendar.start(board, user, content))
-    arr.push(await List.start(board, user, content))
-    return arr
+    return Promise.all(Object.values(pipeMapping).map(
+        pipe => pipe.start(board, user, content)
+    ))
 }
 
 export default selectPipe

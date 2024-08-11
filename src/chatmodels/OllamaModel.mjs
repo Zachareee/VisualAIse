@@ -2,6 +2,7 @@ import { Ollama } from 'ollama'
 import ChatModel from './ChatModel.mjs'
 
 /**
+ * The Ollama ChatModel implementation
  * @property {Ollama} ollama
  */
 class OllamaModel extends ChatModel {

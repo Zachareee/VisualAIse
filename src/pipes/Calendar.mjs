@@ -6,16 +6,26 @@ import VCalendar from "../visual/VCalendar.mjs";
 import log from "../Logger.mjs"
 import { Board } from "@mirohq/miro-api";
 
+/** @typedef {Record<string, string[]>} CalendarStruct */
+
 /**
- * @type {Record<string, string>}
+ * @type {CalendarStruct}
  */
 const originalState = {}
+
+/**
+ * The internal state of the Calendar as a JSON object, with the date as the key and the events as values
+ * {"16": ["Birthday party"], "21": ["Project deadline", "Meeting with clients"]}
+ */
 const state = new State(originalState)
 /**
  * @type {Date}
  */
 export let date
 
+/**
+ * The calendar pipeline which exposes starting point functions, and can provide prior instructions as context
+ */
 class Calendar extends Pipes {
     /**
      * 
@@ -44,43 +54,72 @@ class Calendar extends Pipes {
 export default new Calendar()
 
 /**
- * 
+ * Gets triggered immediately after starting
  * @param {Board} board 
  * @param {string} user 
  * @param {string} content 
  */
 async function decideCalendar(board, user, content) {
-    return imp.checkCalendarDates(content).then(async result => {
-        log("Calendar dates found for", content, result)
-        if (!date) {
-            const newDate = new Date()
-            date = new Date(`1 ${await imp.getMonth(content)} ${newDate.getFullYear()} UTC`)
-        }
-        if (Boolean(result))
-            return imp.createJSONDates(content)
-                .then(JSON.parse).then(
+    return imp.checkCalendarDates(content)
+        .then(
+            Boolean
+        ).then(
+            /**
+             * @param result A boolean result for whether a calendar date was found
+             */
+            async result => {
+                log("Calendar dates found for", content, result)
+                if (!result) return
+
+                // set up the month in the variable "date", which helps to align the calendar
+                if (!date) {
+                    const newDate = new Date()
+                    date = new Date(`1 ${await imp.getMonth(content)} ${newDate.getFullYear()} UTC`)
+                }
+
+                return imp.createJSONDates(content).then(
+                    JSON.parse
+                ).then(
                     /**
-                     * @param {Record<string, string[]>} JSONarr
+                     * @param {CalendarStruct} JSONarr An object with a structure similar to {@link state}
                      */
                     JSONarr => {
                         log("JSON format of dates:", JSONarr)
                         return addDatesToBoard(board, user, JSONarr)
                     }
                 )
-    })
+            })
 }
 
 /**
- * 
+ * Calls on the visual counterpart of this pipeline and augments the internal view of the calendar
  * @param {Board} board 
  * @param {string} user
- * @param {Record<string, string[]>} array 
+ * @param {CalendarStruct} array 
  */
 async function addDatesToBoard(board, user, array) {
     await VCalendar.prepareCalendar(board, user, array)
-    return imp.augmentCalendar(`Existing:${JSON.stringify(await state.getValue())}\nNew:${JSON.stringify(array)}`)
-        .then(result => {
-            log("Result of augmenting is", result)
-            return state.setValue(JSON.parse(result))
-        })
+    return augmentCalendar(array)
+        .then(
+            JSON.parse
+        ).then(
+            /**
+             * 
+             * @param {CalendarStruct} result 
+             */
+            result => {
+                log("Result of augmenting is", result)
+                return state.setValue(result)
+            }
+        )
+}
+
+/**
+ * Shortened function to augment the calendar
+ * @param {CalendarStruct} array 
+ */
+async function augmentCalendar(array) {
+    const { stringify: s } = JSON // Extracts the stringify function to shorten the line below
+    // Get AI to augment the calendar for us
+    return imp.augmentCalendar(`Existing:${s(await state.getValue())}\nNew:${s(array)}`)
 }
