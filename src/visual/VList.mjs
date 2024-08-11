@@ -2,7 +2,7 @@ import { Board, CardItem, FrameItem } from "@mirohq/miro-api";
 import { createCard, createFrame, createTag, filterItems, findItem, strLike, updateFrameGeo } from "../miroutils.mjs";
 import { CARDHEIGHT, CARDWIDTH, coordinateCalculator, listPosition } from "./Positions.mjs";
 import log from "../Logger.mjs"
-import { GeometryNoRotation } from "@mirohq/miro-api/dist/api";
+import { GeometryNoRotation } from "@mirohq/miro-api/dist/api.js";
 
 /** The name of the Matrix frame */
 const MatrixFrameName = "Matrix"

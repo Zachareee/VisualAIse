@@ -1,10 +1,26 @@
 [
-    "Hey, have you had a chance to review the project timeline for June?",
-    "Yeah, I took a look at it. It seems pretty packed. What are your thoughts?",
-    "I'm a bit concerned about the deadlines. We've got the client presentation scheduled for June 15th, and we still need to finalize the content.",
-    "I agree, that's cutting it close. We should aim to have a draft ready by June 10th at the latest, so we have time for revisions.",
-    "Absolutely. Plus, don't forget about the team meeting on June 5th. That's when we're supposed to go over the project milestones with everyone.",
-    "Right, we need to make sure everyone's clear on their tasks leading up to the presentation. And after that, we've got the progress report due on June 25th.",
-    "Yeah, that'll give us a chance to assess where we stand and make any necessary adjustments before the final push.",
-    "Overall, it looks manageable, but we'll need to stay on top of things to avoid any last-minute scrambles."
+    {
+        "Alice": "Hey, have you had a chance to review the project timeline for June?"
+    },
+    {
+        "Bob": "Yeah, I took a look at it. It seems pretty packed. What are your thoughts?"
+    },
+    {
+        "Alice": "I'm a bit concerned about the deadlines. We've got the client presentation scheduled for June 15th, and we still need to finalize the content."
+    },
+    {
+        "Bob": "I agree, that's cutting it close. We should aim to have a draft ready by June 10th at the latest, so we have time for revisions."
+    },
+    {
+        "Alice": "Absolutely. Plus, don't forget about the team meeting on June 5th. That's when we're supposed to go over the project milestones with everyone."
+    },
+    {
+        "Bob": "Right, we need to make sure everyone's clear on their tasks leading up to the presentation. And after that, we've got the progress report due on June 25th."
+    },
+    {
+        "Alice": "Yeah, that'll give us a chance to assess where we stand and make any necessary adjustments before the final push."
+    },
+    {
+        "Bob": "Overall, it looks manageable, but we'll need to stay on top of things to avoid any last-minute scrambles."
+    }
 ]
